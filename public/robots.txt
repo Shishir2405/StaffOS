@@ -1,0 +1,14 @@
+# GeoMentor HRMS - Robots.txt
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+
+# Block sensitive admin and API routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /sign-in
+Disallow: /sign-up
+
+# Sitemap location
+Sitemap: https://geomentor.vercel.app/sitemap.xml

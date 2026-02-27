@@ -1,0 +1,1 @@
+ALTER TABLE `attendance` ADD `check_type` text DEFAULT 'check_in' NOT NULL;
