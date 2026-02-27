@@ -143,7 +143,6 @@ export async function POST(request: NextRequest) {
     await db.update(payrollRuns)
       .set({ 
         status: 'processing',
-        updatedAt: new Date().toISOString()
       })
       .where(eq(payrollRuns.id, payrollRunId));
 
@@ -157,7 +156,6 @@ export async function POST(request: NextRequest) {
         await db.update(payrollRuns)
           .set({ 
             status: 'draft',
-            updatedAt: new Date().toISOString()
           })
           .where(eq(payrollRuns.id, payrollRunId));
 
@@ -306,7 +304,6 @@ export async function POST(request: NextRequest) {
       await db.update(payrollRuns)
         .set({ 
           status: 'draft',
-          updatedAt: new Date().toISOString()
         })
         .where(eq(payrollRuns.id, payrollRunId));
 

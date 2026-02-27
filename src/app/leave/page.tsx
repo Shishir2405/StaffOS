@@ -1,21 +1,27 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Calendar } from "@/components/ui/calendar"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { useState, useEffect } from "react";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -32,159 +38,168 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
-import { Calendar as CalendarIcon, Plus, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw } from "lucide-react"
-import { toast } from "sonner"
-import { format } from "date-fns"
-import { useSession } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
+  Calendar as CalendarIcon,
+  Plus,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 interface LeaveRequest {
-  id: number
-  employeeId: number
-  employeeName: string
-  employeeCode?: string
-  leaveType: string
-  startDate: string
-  endDate: string
-  totalDays: number
-  reason: string
-  status: string
-  approvedBy?: number | null
-  approvedAt?: string | null
-  createdAt: string
+  id: number;
+  employeeId: number;
+  employeeName: string;
+  employeeCode?: string;
+  leaveType: string;
+  startDate: string;
+  endDate: string;
+  totalDays: number;
+  reason: string;
+  status: string;
+  approvedBy?: number | null;
+  approvedAt?: string | null;
+  createdAt: string;
 }
 
 export default function LeavePage() {
-  const { data: session, isPending } = useSession()
-  const router = useRouter()
-  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [isFetching, setIsFetching] = useState(true)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [startDate, setStartDate] = useState<Date>()
-  const [endDate, setEndDate] = useState<Date>()
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+  const sessionUser = session?.user as any;
+  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [startDate, setStartDate] = useState<Date>();
+  const [endDate, setEndDate] = useState<Date>();
   const [formData, setFormData] = useState({
     leaveType: "",
     reason: "",
-  })
+  });
 
   // Redirect if not authenticated
   useEffect(() => {
     if (!isPending && !session?.user) {
-      router.push("/sign-in")
+      router.push("/sign-in");
     }
-  }, [session, isPending, router])
+  }, [session, isPending, router]);
 
   useEffect(() => {
     if (session?.user) {
-      fetchLeaveRequests()
+      fetchLeaveRequests();
     }
-  }, [session])
+  }, [session]);
 
   const fetchLeaveRequests = async () => {
-    setIsFetching(true)
+    setIsFetching(true);
     try {
-      const token = localStorage.getItem("bearer_token")
+      const token = localStorage.getItem("bearer_token");
       const response = await fetch("/api/leave-requests", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
-      
+      });
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
-      const data = await response.json()
-      
+
+      const data = await response.json();
+
       // API returns array directly
       if (Array.isArray(data)) {
-        setLeaveRequests(data)
+        setLeaveRequests(data);
       } else {
-        console.error("Unexpected data format:", data)
-        toast.error("Failed to load leave requests")
+        console.error("Unexpected data format:", data);
+        toast.error("Failed to load leave requests");
       }
     } catch (error) {
-      console.error("Error fetching leave requests:", error)
-      toast.error("Failed to fetch leave requests")
+      console.error("Error fetching leave requests:", error);
+      toast.error("Failed to fetch leave requests");
     } finally {
-      setIsFetching(false)
+      setIsFetching(false);
     }
-  }
+  };
 
   const calculateDays = () => {
-    if (!startDate || !endDate) return 0
-    const diff = Math.abs(endDate.getTime() - startDate.getTime())
-    return Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1
-  }
+    if (!startDate || !endDate) return 0;
+    const diff = Math.abs(endDate.getTime() - startDate.getTime());
+    return Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (!startDate || !endDate || !formData.leaveType || !formData.reason) {
-      toast.error("Please fill in all fields")
-      return
+      toast.error("Please fill in all fields");
+      return;
     }
 
-    if (!session?.user?.employeeId) {
-      toast.error("No employee record linked to your account. Please contact admin.")
-      return
+    if (!sessionUser?.employeeId) {
+      toast.error(
+        "No employee record linked to your account. Please contact admin.",
+      );
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const token = localStorage.getItem("bearer_token")
+      const token = localStorage.getItem("bearer_token");
       const response = await fetch("/api/leave-requests", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          employeeId: session.user.employeeId,
+          employeeId: sessionUser.employeeId,
           leaveType: formData.leaveType,
-          startDate: startDate.toISOString().split('T')[0],
-          endDate: endDate.toISOString().split('T')[0],
+          startDate: startDate.toISOString().split("T")[0],
+          endDate: endDate.toISOString().split("T")[0],
           totalDays: calculateDays(),
           reason: formData.reason,
         }),
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to submit leave request")
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to submit leave request");
       }
-      
-      const data = await response.json()
-      toast.success("Leave request submitted successfully")
-      setIsDialogOpen(false)
-      setFormData({ leaveType: "", reason: "" })
-      setStartDate(undefined)
-      setEndDate(undefined)
-      fetchLeaveRequests()
-    } catch (error: any) {
-      console.error("Submit error:", error)
-      toast.error(error.message || "Failed to submit leave request")
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
-  const handleApproveReject = async (leaveId: number, status: "Approved" | "Rejected") => {
-    if (!session?.user?.employeeId) {
-      toast.error("No employee record linked to your account.")
-      return
+      const data = await response.json();
+      toast.success("Leave request submitted successfully");
+      setIsDialogOpen(false);
+      setFormData({ leaveType: "", reason: "" });
+      setStartDate(undefined);
+      setEndDate(undefined);
+      fetchLeaveRequests();
+    } catch (error: any) {
+      console.error("Submit error:", error);
+      toast.error(error.message || "Failed to submit leave request");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleApproveReject = async (
+    leaveId: number,
+    status: "Approved" | "Rejected",
+  ) => {
+    if (!sessionUser?.employeeId) {
+      toast.error("No employee record linked to your account.");
+      return;
     }
 
     try {
-      const token = localStorage.getItem("bearer_token")
+      const token = localStorage.getItem("bearer_token");
       const response = await fetch(`/api/leave-requests?id=${leaveId}`, {
         method: "PUT",
         headers: {
@@ -193,64 +208,73 @@ export default function LeavePage() {
         },
         body: JSON.stringify({
           status,
-          approvedBy: session.user.employeeId,
+          approvedBy: sessionUser.employeeId,
           approvedAt: new Date().toISOString(),
         }),
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || `Failed to ${status.toLowerCase()} leave request`)
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || `Failed to ${status.toLowerCase()} leave request`,
+        );
       }
 
-      toast.success(`Leave request ${status.toLowerCase()} successfully`)
-      fetchLeaveRequests()
+      toast.success(`Leave request ${status.toLowerCase()} successfully`);
+      fetchLeaveRequests();
     } catch (error: any) {
-      console.error("Approve/Reject error:", error)
-      toast.error(error.message || `Failed to ${status.toLowerCase()} leave request`)
+      console.error("Approve/Reject error:", error);
+      toast.error(
+        error.message || `Failed to ${status.toLowerCase()} leave request`,
+      );
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "approved":
-        return "default"
+        return "default";
       case "pending":
-        return "secondary"
+        return "secondary";
       case "rejected":
-        return "destructive"
+        return "destructive";
       default:
-        return "outline"
+        return "outline";
     }
-  }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
       case "approved":
-        return <CheckCircle className="h-4 w-4" />
+        return <CheckCircle className="h-4 w-4" />;
       case "pending":
-        return <Clock className="h-4 w-4" />
+        return <Clock className="h-4 w-4" />;
       case "rejected":
-        return <XCircle className="h-4 w-4" />
+        return <XCircle className="h-4 w-4" />;
       default:
-        return <AlertCircle className="h-4 w-4" />
+        return <AlertCircle className="h-4 w-4" />;
     }
-  }
+  };
 
   const leaveBalance = {
     casual: 12,
     sick: 10,
     earned: 15,
     total: 37,
-  }
+  };
 
   // Check if user is admin or HR
-  const isAdminOrHR = session?.user?.role === "admin" || session?.user?.role === "hr"
+  const isAdminOrHR =
+    sessionUser?.role === "admin" || sessionUser?.role === "hr";
 
-  // Filter requests for different tabs
-  const myRequests = leaveRequests.filter(req => req.employeeId === session?.user?.employeeId)
-  const pendingApprovals = leaveRequests.filter(req => req.status === "Pending")
-  const allRequests = leaveRequests
+  const myRequests = leaveRequests.filter(
+    (req) => req.employeeId === sessionUser?.employeeId,
+  );
+
+  const pendingApprovals = leaveRequests.filter(
+    (req) => req.status === "Pending",
+  );
+  const allRequests = leaveRequests;
 
   if (isPending || isFetching) {
     return (
@@ -259,11 +283,11 @@ export default function LeavePage() {
           <RefreshCw className="h-8 w-8 animate-spin" />
         </div>
       </DashboardLayout>
-    )
+    );
   }
 
   if (!session?.user) {
-    return null
+    return null;
   }
 
   return (
@@ -272,9 +296,13 @@ export default function LeavePage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Leave Management</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Leave Management
+            </h1>
             <p className="text-muted-foreground">
-              {isAdminOrHR ? "Manage leave requests and approvals" : "Apply for leave and track your requests"}
+              {isAdminOrHR
+                ? "Manage leave requests and approvals"
+                : "Apply for leave and track your requests"}
             </p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -305,10 +333,14 @@ export default function LeavePage() {
                         <SelectValue placeholder="Select leave type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Casual Leave">Casual Leave</SelectItem>
+                        <SelectItem value="Casual Leave">
+                          Casual Leave
+                        </SelectItem>
                         <SelectItem value="Sick Leave">Sick Leave</SelectItem>
                         <SelectItem value="Paid Leave">Paid Leave</SelectItem>
-                        <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
+                        <SelectItem value="Unpaid Leave">
+                          Unpaid Leave
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -340,7 +372,9 @@ export default function LeavePage() {
                       mode="single"
                       selected={endDate}
                       onSelect={setEndDate}
-                      disabled={(date) => startDate ? date < startDate : false}
+                      disabled={(date) =>
+                        startDate ? date < startDate : false
+                      }
                       className="rounded-md border"
                     />
                   </div>
@@ -386,7 +420,9 @@ export default function LeavePage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{leaveBalance.total}</div>
-              <p className="text-xs text-muted-foreground mt-1">days remaining</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                days remaining
+              </p>
             </CardContent>
           </Card>
 
@@ -398,7 +434,9 @@ export default function LeavePage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{leaveBalance.casual}</div>
-              <p className="text-xs text-muted-foreground mt-1">days remaining</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                days remaining
+              </p>
             </CardContent>
           </Card>
 
@@ -410,7 +448,9 @@ export default function LeavePage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{leaveBalance.sick}</div>
-              <p className="text-xs text-muted-foreground mt-1">days remaining</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                days remaining
+              </p>
             </CardContent>
           </Card>
 
@@ -422,7 +462,9 @@ export default function LeavePage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{leaveBalance.earned}</div>
-              <p className="text-xs text-muted-foreground mt-1">days remaining</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                days remaining
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -432,7 +474,9 @@ export default function LeavePage() {
           <CardHeader>
             <CardTitle>Leave Requests</CardTitle>
             <CardDescription>
-              {isAdminOrHR ? "View and manage all leave requests" : "View and track your leave applications"}
+              {isAdminOrHR
+                ? "View and manage all leave requests"
+                : "View and track your leave applications"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -470,7 +514,10 @@ export default function LeavePage() {
                   <TableBody>
                     {myRequests.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                        <TableCell
+                          colSpan={7}
+                          className="text-center text-muted-foreground py-8"
+                        >
                           No leave requests found
                         </TableCell>
                       </TableRow>
@@ -481,7 +528,10 @@ export default function LeavePage() {
                             {request.leaveType}
                           </TableCell>
                           <TableCell>
-                            {format(new Date(request.startDate), "MMM dd, yyyy")}
+                            {format(
+                              new Date(request.startDate),
+                              "MMM dd, yyyy",
+                            )}
                           </TableCell>
                           <TableCell>
                             {format(new Date(request.endDate), "MMM dd, yyyy")}
@@ -494,12 +544,17 @@ export default function LeavePage() {
                             <Badge variant={getStatusColor(request.status)}>
                               <span className="flex items-center gap-1">
                                 {getStatusIcon(request.status)}
-                                <span className="capitalize">{request.status}</span>
+                                <span className="capitalize">
+                                  {request.status}
+                                </span>
                               </span>
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            {format(new Date(request.createdAt), "MMM dd, yyyy")}
+                            {format(
+                              new Date(request.createdAt),
+                              "MMM dd, yyyy",
+                            )}
                           </TableCell>
                         </TableRow>
                       ))
@@ -527,7 +582,10 @@ export default function LeavePage() {
                       <TableBody>
                         {pendingApprovals.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                            <TableCell
+                              colSpan={8}
+                              className="text-center text-muted-foreground py-8"
+                            >
                               No pending approvals
                             </TableCell>
                           </TableRow>
@@ -544,24 +602,38 @@ export default function LeavePage() {
                               </TableCell>
                               <TableCell>{request.leaveType}</TableCell>
                               <TableCell>
-                                {format(new Date(request.startDate), "MMM dd, yyyy")}
+                                {format(
+                                  new Date(request.startDate),
+                                  "MMM dd, yyyy",
+                                )}
                               </TableCell>
                               <TableCell>
-                                {format(new Date(request.endDate), "MMM dd, yyyy")}
+                                {format(
+                                  new Date(request.endDate),
+                                  "MMM dd, yyyy",
+                                )}
                               </TableCell>
                               <TableCell>{request.totalDays}</TableCell>
                               <TableCell className="max-w-xs truncate">
                                 {request.reason}
                               </TableCell>
                               <TableCell>
-                                {format(new Date(request.createdAt), "MMM dd, yyyy")}
+                                {format(
+                                  new Date(request.createdAt),
+                                  "MMM dd, yyyy",
+                                )}
                               </TableCell>
                               <TableCell>
                                 <div className="flex gap-2">
                                   <Button
                                     size="sm"
                                     variant="default"
-                                    onClick={() => handleApproveReject(request.id, "Approved")}
+                                    onClick={() =>
+                                      handleApproveReject(
+                                        request.id,
+                                        "Approved",
+                                      )
+                                    }
                                   >
                                     <CheckCircle className="h-4 w-4 mr-1" />
                                     Approve
@@ -569,7 +641,12 @@ export default function LeavePage() {
                                   <Button
                                     size="sm"
                                     variant="destructive"
-                                    onClick={() => handleApproveReject(request.id, "Rejected")}
+                                    onClick={() =>
+                                      handleApproveReject(
+                                        request.id,
+                                        "Rejected",
+                                      )
+                                    }
                                   >
                                     <XCircle className="h-4 w-4 mr-1" />
                                     Reject
@@ -600,7 +677,10 @@ export default function LeavePage() {
                       <TableBody>
                         {allRequests.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                            <TableCell
+                              colSpan={8}
+                              className="text-center text-muted-foreground py-8"
+                            >
                               No leave requests found
                             </TableCell>
                           </TableRow>
@@ -617,10 +697,16 @@ export default function LeavePage() {
                               </TableCell>
                               <TableCell>{request.leaveType}</TableCell>
                               <TableCell>
-                                {format(new Date(request.startDate), "MMM dd, yyyy")}
+                                {format(
+                                  new Date(request.startDate),
+                                  "MMM dd, yyyy",
+                                )}
                               </TableCell>
                               <TableCell>
-                                {format(new Date(request.endDate), "MMM dd, yyyy")}
+                                {format(
+                                  new Date(request.endDate),
+                                  "MMM dd, yyyy",
+                                )}
                               </TableCell>
                               <TableCell>{request.totalDays}</TableCell>
                               <TableCell className="max-w-xs truncate">
@@ -630,12 +716,17 @@ export default function LeavePage() {
                                 <Badge variant={getStatusColor(request.status)}>
                                   <span className="flex items-center gap-1">
                                     {getStatusIcon(request.status)}
-                                    <span className="capitalize">{request.status}</span>
+                                    <span className="capitalize">
+                                      {request.status}
+                                    </span>
                                   </span>
                                 </Badge>
                               </TableCell>
                               <TableCell>
-                                {format(new Date(request.createdAt), "MMM dd, yyyy")}
+                                {format(
+                                  new Date(request.createdAt),
+                                  "MMM dd, yyyy",
+                                )}
                               </TableCell>
                             </TableRow>
                           ))
@@ -650,5 +741,5 @@ export default function LeavePage() {
         </Card>
       </div>
     </DashboardLayout>
-  )
+  );
 }

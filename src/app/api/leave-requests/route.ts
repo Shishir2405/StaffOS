@@ -1,11 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { leaveRequests, employees } from '@/db/schema';
-import { eq, and, gte, lte, desc } from 'drizzle-orm';
-import { auth } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { leaveRequests, employees } from "@/db/schema";
+import { eq, and, gte, lte, desc } from "drizzle-orm";
+import { auth } from "@/lib/auth";
 
-const VALID_LEAVE_TYPES = ['Sick Leave', 'Casual Leave', 'Paid Leave', 'Unpaid Leave'];
-const VALID_STATUSES = ['Pending', 'Approved', 'Rejected'];
+const VALID_LEAVE_TYPES = [
+  "Sick Leave",
+  "Casual Leave",
+  "Paid Leave",
+  "Unpaid Leave",
+];
+const VALID_STATUSES = ["Pending", "Approved", "Rejected"];
 
 function isValidDate(dateString: string): boolean {
   const regex = /^\d{4}-\d{2}-\d{2}$/;
@@ -17,21 +22,25 @@ function isValidDate(dateString: string): boolean {
 // Helper function to get authenticated user
 async function getAuthenticatedUser(request: NextRequest) {
   const session = await auth.api.getSession({ headers: request.headers });
-  
+
   if (!session?.user) {
-    return { error: { message: 'Unauthorized - Please login', status: 401 } };
+    return { error: { message: "Unauthorized - Please login", status: 401 } };
   }
-  
+
   return { user: session.user };
 }
 
 // Helper function to check if user can access leave request data
-function canAccessLeaveData(userRole: string, userEmployeeId: number | null, targetEmployeeId: number) {
+function canAccessLeaveData(
+  userRole: string,
+  userEmployeeId: number | null,
+  targetEmployeeId: number,
+) {
   // Admin and HR can access all leave requests
-  if (userRole === 'admin' || userRole === 'hr') {
+  if (userRole === "admin" || userRole === "hr") {
     return true;
   }
-  
+
   // Regular users can only access their own leave requests
   return userEmployeeId === targetEmployeeId;
 }
@@ -41,26 +50,29 @@ export async function GET(request: NextRequest) {
     // Authenticate user
     const authResult = await getAuthenticatedUser(request);
     if (authResult.error) {
-      return NextResponse.json({ error: authResult.error.message }, { status: authResult.error.status });
+      return NextResponse.json(
+        { error: authResult.error.message },
+        { status: authResult.error.status },
+      );
     }
-    
+
     const { user } = authResult;
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    const employeeId = searchParams.get('employeeId');
-    const status = searchParams.get('status');
-    const leaveType = searchParams.get('leaveType');
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const id = searchParams.get("id");
+    const employeeId = searchParams.get("employeeId");
+    const status = searchParams.get("status");
+    const leaveType = searchParams.get("leaveType");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100);
+    const offset = parseInt(searchParams.get("offset") || "0");
 
     if (id) {
       const leaveId = parseInt(id);
       if (isNaN(leaveId)) {
         return NextResponse.json(
-          { error: 'Valid ID is required', code: 'INVALID_ID' },
-          { status: 400 }
+          { error: "Valid ID is required", code: "INVALID_ID" },
+          { status: 400 },
         );
       }
 
@@ -89,18 +101,27 @@ export async function GET(request: NextRequest) {
 
       if (result.length === 0) {
         return NextResponse.json(
-          { error: 'Leave request not found', code: 'LEAVE_REQUEST_NOT_FOUND' },
-          { status: 404 }
+          { error: "Leave request not found", code: "LEAVE_REQUEST_NOT_FOUND" },
+          { status: 404 },
         );
       }
 
       const leaveRequest = result[0];
 
       // Check authorization
-      if (!canAccessLeaveData(user.role, user.employeeId, leaveRequest.employeeId)) {
+      if (
+        !canAccessLeaveData(
+          user.role ?? "",
+          (user as any).employeeId ?? null,
+          leaveRequest.employeeId,
+        )
+      ) {
         return NextResponse.json(
-          { error: 'Forbidden - You can only access your own leave requests', code: 'FORBIDDEN' },
-          { status: 403 }
+          {
+            error: "Forbidden - You can only access your own leave requests",
+            code: "FORBIDDEN",
+          },
+          { status: 403 },
         );
       }
 
@@ -131,9 +152,11 @@ export async function GET(request: NextRequest) {
         data: {
           ...leaveRequest,
           employeeName: `${leaveRequest.employeeName} ${leaveRequest.employeeLastName}`,
-          approverName: approverName ? `${approverName} ${approverLastName}` : null,
+          approverName: approverName
+            ? `${approverName} ${approverLastName}`
+            : null,
           approverCode,
-        }
+        },
       });
     }
 
@@ -161,11 +184,14 @@ export async function GET(request: NextRequest) {
     const conditions = [];
 
     // Role-based filtering: Regular users can only see their own leave requests
-    if (user.role !== 'admin' && user.role !== 'hr') {
+    if (user.role !== "admin" && user.role !== "hr") {
       if (!user.employeeId) {
         return NextResponse.json(
-          { error: 'No employee record linked to your account', code: 'NO_EMPLOYEE_LINK' },
-          { status: 400 }
+          {
+            error: "No employee record linked to your account",
+            code: "NO_EMPLOYEE_LINK",
+          },
+          { status: 400 },
         );
       }
       conditions.push(eq(leaveRequests.employeeId, user.employeeId));
@@ -209,10 +235,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: formattedResults });
   } catch (error) {
-    console.error('GET error:', error);
+    console.error("GET error:", error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error },
-      { status: 500 }
+      { error: "Internal server error: " + error },
+      { status: 500 },
     );
   }
 }
@@ -222,100 +248,116 @@ export async function POST(request: NextRequest) {
     // Authenticate user
     const authResult = await getAuthenticatedUser(request);
     if (authResult.error) {
-      return NextResponse.json({ error: authResult.error.message }, { status: authResult.error.status });
+      return NextResponse.json(
+        { error: authResult.error.message },
+        { status: authResult.error.status },
+      );
     }
-    
+
     const { user } = authResult;
     const body = await request.json();
-    const { employeeId, leaveType, startDate, endDate, totalDays, reason } = body;
+    const { employeeId, leaveType, startDate, endDate, totalDays, reason } =
+      body;
 
     if (!employeeId) {
       return NextResponse.json(
-        { error: 'Employee ID is required', code: 'MISSING_FIELD' },
-        { status: 400 }
+        { error: "Employee ID is required", code: "MISSING_FIELD" },
+        { status: 400 },
       );
     }
 
     // Check authorization - users can only create their own leave requests
-    if (user.role !== 'admin' && user.role !== 'hr') {
+    if (user.role !== "admin" && user.role !== "hr") {
       if (!user.employeeId || user.employeeId !== employeeId) {
         return NextResponse.json(
-          { error: 'Forbidden - You can only create your own leave requests', code: 'FORBIDDEN' },
-          { status: 403 }
+          {
+            error: "Forbidden - You can only create your own leave requests",
+            code: "FORBIDDEN",
+          },
+          { status: 403 },
         );
       }
     }
 
     if (!leaveType) {
       return NextResponse.json(
-        { error: 'Leave type is required', code: 'MISSING_FIELD' },
-        { status: 400 }
+        { error: "Leave type is required", code: "MISSING_FIELD" },
+        { status: 400 },
       );
     }
 
     if (!VALID_LEAVE_TYPES.includes(leaveType)) {
       return NextResponse.json(
         {
-          error: `Invalid leave type. Must be one of: ${VALID_LEAVE_TYPES.join(', ')}`,
-          code: 'INVALID_LEAVE_TYPE',
+          error: `Invalid leave type. Must be one of: ${VALID_LEAVE_TYPES.join(", ")}`,
+          code: "INVALID_LEAVE_TYPE",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!startDate) {
       return NextResponse.json(
-        { error: 'Start date is required', code: 'MISSING_FIELD' },
-        { status: 400 }
+        { error: "Start date is required", code: "MISSING_FIELD" },
+        { status: 400 },
       );
     }
 
     if (!endDate) {
       return NextResponse.json(
-        { error: 'End date is required', code: 'MISSING_FIELD' },
-        { status: 400 }
+        { error: "End date is required", code: "MISSING_FIELD" },
+        { status: 400 },
       );
     }
 
     if (!isValidDate(startDate)) {
       return NextResponse.json(
-        { error: 'Start date must be in YYYY-MM-DD format', code: 'INVALID_DATE' },
-        { status: 400 }
+        {
+          error: "Start date must be in YYYY-MM-DD format",
+          code: "INVALID_DATE",
+        },
+        { status: 400 },
       );
     }
 
     if (!isValidDate(endDate)) {
       return NextResponse.json(
-        { error: 'End date must be in YYYY-MM-DD format', code: 'INVALID_DATE' },
-        { status: 400 }
+        {
+          error: "End date must be in YYYY-MM-DD format",
+          code: "INVALID_DATE",
+        },
+        { status: 400 },
       );
     }
 
     if (new Date(endDate) < new Date(startDate)) {
       return NextResponse.json(
-        { error: 'End date cannot be before start date', code: 'INVALID_DATE_RANGE' },
-        { status: 400 }
+        {
+          error: "End date cannot be before start date",
+          code: "INVALID_DATE_RANGE",
+        },
+        { status: 400 },
       );
     }
 
     if (totalDays === undefined || totalDays === null) {
       return NextResponse.json(
-        { error: 'Total days is required', code: 'MISSING_FIELD' },
-        { status: 400 }
+        { error: "Total days is required", code: "MISSING_FIELD" },
+        { status: 400 },
       );
     }
 
-    if (typeof totalDays !== 'number' || totalDays <= 0) {
+    if (typeof totalDays !== "number" || totalDays <= 0) {
       return NextResponse.json(
-        { error: 'Total days must be a positive number', code: 'INVALID_DATE' },
-        { status: 400 }
+        { error: "Total days must be a positive number", code: "INVALID_DATE" },
+        { status: 400 },
       );
     }
 
-    if (!reason || reason.trim() === '') {
+    if (!reason || reason.trim() === "") {
       return NextResponse.json(
-        { error: 'Reason is required', code: 'MISSING_FIELD' },
-        { status: 400 }
+        { error: "Reason is required", code: "MISSING_FIELD" },
+        { status: 400 },
       );
     }
 
@@ -327,8 +369,8 @@ export async function POST(request: NextRequest) {
 
     if (employee.length === 0) {
       return NextResponse.json(
-        { error: 'Employee not found', code: 'EMPLOYEE_NOT_FOUND' },
-        { status: 400 }
+        { error: "Employee not found", code: "EMPLOYEE_NOT_FOUND" },
+        { status: 400 },
       );
     }
 
@@ -343,7 +385,7 @@ export async function POST(request: NextRequest) {
         endDate,
         totalDays,
         reason: reason.trim(),
-        status: 'Pending',
+        status: "Pending",
         approvedBy: null,
         approvedAt: null,
         createdAt: now,
@@ -353,10 +395,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newLeaveRequest[0], { status: 201 });
   } catch (error) {
-    console.error('POST error:', error);
+    console.error("POST error:", error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error },
-      { status: 500 }
+      { error: "Internal server error: " + error },
+      { status: 500 },
     );
   }
 }
@@ -366,17 +408,20 @@ export async function PUT(request: NextRequest) {
     // Authenticate user
     const authResult = await getAuthenticatedUser(request);
     if (authResult.error) {
-      return NextResponse.json({ error: authResult.error.message }, { status: authResult.error.status });
+      return NextResponse.json(
+        { error: authResult.error.message },
+        { status: authResult.error.status },
+      );
     }
-    
+
     const { user } = authResult;
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const id = searchParams.get("id");
 
     if (!id || isNaN(parseInt(id))) {
       return NextResponse.json(
-        { error: 'Valid ID is required', code: 'INVALID_ID' },
-        { status: 400 }
+        { error: "Valid ID is required", code: "INVALID_ID" },
+        { status: 400 },
       );
     }
 
@@ -390,24 +435,39 @@ export async function PUT(request: NextRequest) {
 
     if (existingRequest.length === 0) {
       return NextResponse.json(
-        { error: 'Leave request not found', code: 'LEAVE_REQUEST_NOT_FOUND' },
-        { status: 404 }
+        { error: "Leave request not found", code: "LEAVE_REQUEST_NOT_FOUND" },
+        { status: 404 },
       );
     }
 
     // Check authorization
-    const canModify = user.role === 'admin' || user.role === 'hr' || 
-                      (user.employeeId === existingRequest[0].employeeId && existingRequest[0].status === 'Pending');
-    
+    const canModify =
+      user.role === "admin" ||
+      user.role === "hr" ||
+      (user.employeeId === existingRequest[0].employeeId &&
+        existingRequest[0].status === "Pending");
+
     if (!canModify) {
       return NextResponse.json(
-        { error: 'Forbidden - You cannot modify this leave request', code: 'FORBIDDEN' },
-        { status: 403 }
+        {
+          error: "Forbidden - You cannot modify this leave request",
+          code: "FORBIDDEN",
+        },
+        { status: 403 },
       );
     }
 
     const body = await request.json();
-    const { status, approvedBy, approvedAt, reason, startDate, endDate, totalDays, leaveType } = body;
+    const {
+      status,
+      approvedBy,
+      approvedAt,
+      reason,
+      startDate,
+      endDate,
+      totalDays,
+      leaveType,
+    } = body;
 
     const updates: any = {
       updatedAt: new Date().toISOString(),
@@ -415,26 +475,30 @@ export async function PUT(request: NextRequest) {
 
     // Only admin/HR can approve/reject
     if (status !== undefined) {
-      if (user.role !== 'admin' && user.role !== 'hr') {
+      if (user.role !== "admin" && user.role !== "hr") {
         return NextResponse.json(
-          { error: 'Forbidden - Only admin/HR can approve or reject leave requests', code: 'FORBIDDEN' },
-          { status: 403 }
+          {
+            error:
+              "Forbidden - Only admin/HR can approve or reject leave requests",
+            code: "FORBIDDEN",
+          },
+          { status: 403 },
         );
       }
 
       if (!VALID_STATUSES.includes(status)) {
         return NextResponse.json(
           {
-            error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}`,
-            code: 'INVALID_STATUS',
+            error: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}`,
+            code: "INVALID_STATUS",
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
       updates.status = status;
 
-      if (status === 'Approved' || status === 'Rejected') {
+      if (status === "Approved" || status === "Rejected") {
         updates.approvedBy = user.employeeId;
         updates.approvedAt = approvedAt || new Date().toISOString();
       }
@@ -442,10 +506,10 @@ export async function PUT(request: NextRequest) {
 
     // Regular users can only update pending requests
     if (reason !== undefined) {
-      if (reason.trim() === '') {
+      if (reason.trim() === "") {
         return NextResponse.json(
-          { error: 'Reason cannot be empty', code: 'MISSING_FIELD' },
-          { status: 400 }
+          { error: "Reason cannot be empty", code: "MISSING_FIELD" },
+          { status: 400 },
         );
       }
       updates.reason = reason.trim();
@@ -455,10 +519,10 @@ export async function PUT(request: NextRequest) {
       if (!VALID_LEAVE_TYPES.includes(leaveType)) {
         return NextResponse.json(
           {
-            error: `Invalid leave type. Must be one of: ${VALID_LEAVE_TYPES.join(', ')}`,
-            code: 'INVALID_LEAVE_TYPE',
+            error: `Invalid leave type. Must be one of: ${VALID_LEAVE_TYPES.join(", ")}`,
+            code: "INVALID_LEAVE_TYPE",
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
       updates.leaveType = leaveType;
@@ -467,8 +531,11 @@ export async function PUT(request: NextRequest) {
     if (startDate !== undefined) {
       if (!isValidDate(startDate)) {
         return NextResponse.json(
-          { error: 'Start date must be in YYYY-MM-DD format', code: 'INVALID_DATE' },
-          { status: 400 }
+          {
+            error: "Start date must be in YYYY-MM-DD format",
+            code: "INVALID_DATE",
+          },
+          { status: 400 },
         );
       }
       updates.startDate = startDate;
@@ -477,18 +544,24 @@ export async function PUT(request: NextRequest) {
     if (endDate !== undefined) {
       if (!isValidDate(endDate)) {
         return NextResponse.json(
-          { error: 'End date must be in YYYY-MM-DD format', code: 'INVALID_DATE' },
-          { status: 400 }
+          {
+            error: "End date must be in YYYY-MM-DD format",
+            code: "INVALID_DATE",
+          },
+          { status: 400 },
         );
       }
       updates.endDate = endDate;
     }
 
     if (totalDays !== undefined) {
-      if (typeof totalDays !== 'number' || totalDays <= 0) {
+      if (typeof totalDays !== "number" || totalDays <= 0) {
         return NextResponse.json(
-          { error: 'Total days must be a positive number', code: 'INVALID_DATE' },
-          { status: 400 }
+          {
+            error: "Total days must be a positive number",
+            code: "INVALID_DATE",
+          },
+          { status: 400 },
         );
       }
       updates.totalDays = totalDays;
@@ -502,10 +575,10 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(updatedRequest[0]);
   } catch (error) {
-    console.error('PUT error:', error);
+    console.error("PUT error:", error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error },
-      { status: 500 }
+      { error: "Internal server error: " + error },
+      { status: 500 },
     );
   }
 }
@@ -515,17 +588,20 @@ export async function DELETE(request: NextRequest) {
     // Authenticate user
     const authResult = await getAuthenticatedUser(request);
     if (authResult.error) {
-      return NextResponse.json({ error: authResult.error.message }, { status: authResult.error.status });
+      return NextResponse.json(
+        { error: authResult.error.message },
+        { status: authResult.error.status },
+      );
     }
-    
+
     const { user } = authResult;
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const id = searchParams.get("id");
 
     if (!id || isNaN(parseInt(id))) {
       return NextResponse.json(
-        { error: 'Valid ID is required', code: 'INVALID_ID' },
-        { status: 400 }
+        { error: "Valid ID is required", code: "INVALID_ID" },
+        { status: 400 },
       );
     }
 
@@ -539,17 +615,24 @@ export async function DELETE(request: NextRequest) {
 
     if (existingRequest.length === 0) {
       return NextResponse.json(
-        { error: 'Leave request not found', code: 'LEAVE_REQUEST_NOT_FOUND' },
-        { status: 404 }
+        { error: "Leave request not found", code: "LEAVE_REQUEST_NOT_FOUND" },
+        { status: 404 },
       );
     }
 
     // Only allow deletion of own pending requests or admin can delete any
-    if (user.role !== 'admin' && user.role !== 'hr') {
-      if (user.employeeId !== existingRequest[0].employeeId || existingRequest[0].status !== 'Pending') {
+    if (user.role !== "admin" && user.role !== "hr") {
+      if (
+        user.employeeId !== existingRequest[0].employeeId ||
+        existingRequest[0].status !== "Pending"
+      ) {
         return NextResponse.json(
-          { error: 'Forbidden - You can only delete your own pending leave requests', code: 'FORBIDDEN' },
-          { status: 403 }
+          {
+            error:
+              "Forbidden - You can only delete your own pending leave requests",
+            code: "FORBIDDEN",
+          },
+          { status: 403 },
         );
       }
     }
@@ -560,14 +643,14 @@ export async function DELETE(request: NextRequest) {
       .returning();
 
     return NextResponse.json({
-      message: 'Leave request deleted successfully',
+      message: "Leave request deleted successfully",
       deletedRequest: deleted[0],
     });
   } catch (error) {
-    console.error('DELETE error:', error);
+    console.error("DELETE error:", error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error },
-      { status: 500 }
+      { error: "Internal server error: " + error },
+      { status: 500 },
     );
   }
 }

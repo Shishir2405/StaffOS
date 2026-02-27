@@ -1,20 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { payrollRuns, employees } from '@/db/schema';
-import { eq, and, gte, lte, desc } from 'drizzle-orm';
-import { auth } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { payrollRuns, employees } from "@/db/schema";
+import { eq, and, gte, lte, desc } from "drizzle-orm";
+import { auth } from "@/lib/auth";
 
-const VALID_STATUSES = ['draft', 'processing', 'completed', 'approved'];
+const VALID_STATUSES = ["draft", "processing", "completed", "approved"];
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 // Helper function to get authenticated user
 async function getAuthenticatedUser(request: NextRequest) {
   const session = await auth.api.getSession({ headers: request.headers });
-  
+
   if (!session?.user) {
-    return { error: { message: 'Unauthorized - Please login', status: 401 } };
+    return { error: { message: "Unauthorized - Please login", status: 401 } };
   }
-  
+
   return { user: session.user };
 }
 
@@ -33,33 +33,39 @@ export async function GET(request: NextRequest) {
     // Authenticate user
     const authResult = await getAuthenticatedUser(request);
     if (authResult.error) {
-      return NextResponse.json({ error: authResult.error.message }, { status: authResult.error.status });
+      return NextResponse.json(
+        { error: authResult.error.message },
+        { status: authResult.error.status },
+      );
     }
-    
+
     const { user } = authResult;
 
     // Only admin and HR can access payroll runs
-    if (user.role !== 'admin' && user.role !== 'hr') {
+    if (user.role !== "admin" && user.role !== "hr") {
       return NextResponse.json(
-        { error: 'Forbidden - Only admin and HR can access payroll runs', code: 'FORBIDDEN' },
-        { status: 403 }
+        {
+          error: "Forbidden - Only admin and HR can access payroll runs",
+          code: "FORBIDDEN",
+        },
+        { status: 403 },
       );
     }
 
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    const status = searchParams.get('status');
-    const periodStart = searchParams.get('periodStart');
-    const periodEnd = searchParams.get('periodEnd');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const id = searchParams.get("id");
+    const status = searchParams.get("status");
+    const periodStart = searchParams.get("periodStart");
+    const periodEnd = searchParams.get("periodEnd");
+    const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100);
+    const offset = parseInt(searchParams.get("offset") || "0");
 
     // Single record fetch
     if (id) {
       if (!id || isNaN(parseInt(id))) {
         return NextResponse.json(
-          { error: 'Valid ID is required', code: 'INVALID_ID' },
-          { status: 400 }
+          { error: "Valid ID is required", code: "INVALID_ID" },
+          { status: 400 },
         );
       }
 
@@ -71,8 +77,8 @@ export async function GET(request: NextRequest) {
 
       if (record.length === 0) {
         return NextResponse.json(
-          { error: 'Payroll run not found', code: 'NOT_FOUND' },
-          { status: 404 }
+          { error: "Payroll run not found", code: "NOT_FOUND" },
+          { status: 404 },
         );
       }
 
@@ -85,11 +91,11 @@ export async function GET(request: NextRequest) {
     if (status) {
       if (!VALID_STATUSES.includes(status)) {
         return NextResponse.json(
-          { 
-            error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}`,
-            code: 'INVALID_STATUS'
+          {
+            error: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}`,
+            code: "INVALID_STATUS",
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
       conditions.push(eq(payrollRuns.status, status));
@@ -98,8 +104,11 @@ export async function GET(request: NextRequest) {
     if (periodStart) {
       if (!validateDate(periodStart)) {
         return NextResponse.json(
-          { error: 'Invalid periodStart format. Use YYYY-MM-DD', code: 'INVALID_DATE_FORMAT' },
-          { status: 400 }
+          {
+            error: "Invalid periodStart format. Use YYYY-MM-DD",
+            code: "INVALID_DATE_FORMAT",
+          },
+          { status: 400 },
         );
       }
       conditions.push(gte(payrollRuns.periodStart, periodStart));
@@ -108,30 +117,30 @@ export async function GET(request: NextRequest) {
     if (periodEnd) {
       if (!validateDate(periodEnd)) {
         return NextResponse.json(
-          { error: 'Invalid periodEnd format. Use YYYY-MM-DD', code: 'INVALID_DATE_FORMAT' },
-          { status: 400 }
+          {
+            error: "Invalid periodEnd format. Use YYYY-MM-DD",
+            code: "INVALID_DATE_FORMAT",
+          },
+          { status: 400 },
         );
       }
       conditions.push(lte(payrollRuns.periodEnd, periodEnd));
     }
 
-    let query = db.select().from(payrollRuns);
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-
-    const results = await query
+    const results = await db
+      .select()
+      .from(payrollRuns)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(payrollRuns.createdAt))
       .limit(limit)
       .offset(offset);
 
     return NextResponse.json(results, { status: 200 });
   } catch (error) {
-    console.error('GET error:', error);
+    console.error("GET error:", error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error },
-      { status: 500 }
+      { error: "Internal server error: " + error },
+      { status: 500 },
     );
   }
 }
@@ -141,16 +150,22 @@ export async function POST(request: NextRequest) {
     // Authenticate user
     const authResult = await getAuthenticatedUser(request);
     if (authResult.error) {
-      return NextResponse.json({ error: authResult.error.message }, { status: authResult.error.status });
+      return NextResponse.json(
+        { error: authResult.error.message },
+        { status: authResult.error.status },
+      );
     }
-    
+
     const { user } = authResult;
 
     // Only admin and HR can create payroll runs
-    if (user.role !== 'admin' && user.role !== 'hr') {
+    if (user.role !== "admin" && user.role !== "hr") {
       return NextResponse.json(
-        { error: 'Forbidden - Only admin and HR can create payroll runs', code: 'FORBIDDEN' },
-        { status: 403 }
+        {
+          error: "Forbidden - Only admin and HR can create payroll runs",
+          code: "FORBIDDEN",
+        },
+        { status: 403 },
       );
     }
 
@@ -160,63 +175,75 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!runDate) {
       return NextResponse.json(
-        { error: 'runDate is required', code: 'MISSING_RUN_DATE' },
-        { status: 400 }
+        { error: "runDate is required", code: "MISSING_RUN_DATE" },
+        { status: 400 },
       );
     }
 
     if (!periodStart) {
       return NextResponse.json(
-        { error: 'periodStart is required', code: 'MISSING_PERIOD_START' },
-        { status: 400 }
+        { error: "periodStart is required", code: "MISSING_PERIOD_START" },
+        { status: 400 },
       );
     }
 
     if (!periodEnd) {
       return NextResponse.json(
-        { error: 'periodEnd is required', code: 'MISSING_PERIOD_END' },
-        { status: 400 }
+        { error: "periodEnd is required", code: "MISSING_PERIOD_END" },
+        { status: 400 },
       );
     }
 
     // Validate date formats
     if (!validateDate(runDate)) {
       return NextResponse.json(
-        { error: 'Invalid runDate format. Use YYYY-MM-DD', code: 'INVALID_RUN_DATE_FORMAT' },
-        { status: 400 }
+        {
+          error: "Invalid runDate format. Use YYYY-MM-DD",
+          code: "INVALID_RUN_DATE_FORMAT",
+        },
+        { status: 400 },
       );
     }
 
     if (!validateDate(periodStart)) {
       return NextResponse.json(
-        { error: 'Invalid periodStart format. Use YYYY-MM-DD', code: 'INVALID_PERIOD_START_FORMAT' },
-        { status: 400 }
+        {
+          error: "Invalid periodStart format. Use YYYY-MM-DD",
+          code: "INVALID_PERIOD_START_FORMAT",
+        },
+        { status: 400 },
       );
     }
 
     if (!validateDate(periodEnd)) {
       return NextResponse.json(
-        { error: 'Invalid periodEnd format. Use YYYY-MM-DD', code: 'INVALID_PERIOD_END_FORMAT' },
-        { status: 400 }
+        {
+          error: "Invalid periodEnd format. Use YYYY-MM-DD",
+          code: "INVALID_PERIOD_END_FORMAT",
+        },
+        { status: 400 },
       );
     }
 
     // Validate periodEnd >= periodStart
     if (compareDates(periodEnd, periodStart) < 0) {
       return NextResponse.json(
-        { error: 'periodEnd must be greater than or equal to periodStart', code: 'INVALID_PERIOD_RANGE' },
-        { status: 400 }
+        {
+          error: "periodEnd must be greater than or equal to periodStart",
+          code: "INVALID_PERIOD_RANGE",
+        },
+        { status: 400 },
       );
     }
 
     // Validate status if provided
     if (status && !VALID_STATUSES.includes(status)) {
       return NextResponse.json(
-        { 
-          error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}`,
-          code: 'INVALID_STATUS'
+        {
+          error: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}`,
+          code: "INVALID_STATUS",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -230,8 +257,11 @@ export async function POST(request: NextRequest) {
 
       if (employee.length === 0) {
         return NextResponse.json(
-          { error: 'createdBy employee does not exist', code: 'INVALID_CREATED_BY' },
-          { status: 400 }
+          {
+            error: "createdBy employee does not exist",
+            code: "INVALID_CREATED_BY",
+          },
+          { status: 400 },
         );
       }
     }
@@ -243,7 +273,7 @@ export async function POST(request: NextRequest) {
         runDate: runDate.trim(),
         periodStart: periodStart.trim(),
         periodEnd: periodEnd.trim(),
-        status: status || 'draft',
+        status: status || "draft",
         totalEmployees: 0,
         totalAmount: 0,
         createdBy: createdBy || user.employeeId || null,
@@ -254,10 +284,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newPayrollRun[0], { status: 201 });
   } catch (error) {
-    console.error('POST error:', error);
+    console.error("POST error:", error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error },
-      { status: 500 }
+      { error: "Internal server error: " + error },
+      { status: 500 },
     );
   }
 }
@@ -267,26 +297,32 @@ export async function PUT(request: NextRequest) {
     // Authenticate user
     const authResult = await getAuthenticatedUser(request);
     if (authResult.error) {
-      return NextResponse.json({ error: authResult.error.message }, { status: authResult.error.status });
+      return NextResponse.json(
+        { error: authResult.error.message },
+        { status: authResult.error.status },
+      );
     }
-    
+
     const { user } = authResult;
 
     // Only admin and HR can update payroll runs
-    if (user.role !== 'admin' && user.role !== 'hr') {
+    if (user.role !== "admin" && user.role !== "hr") {
       return NextResponse.json(
-        { error: 'Forbidden - Only admin and HR can update payroll runs', code: 'FORBIDDEN' },
-        { status: 403 }
+        {
+          error: "Forbidden - Only admin and HR can update payroll runs",
+          code: "FORBIDDEN",
+        },
+        { status: 403 },
       );
     }
 
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const id = searchParams.get("id");
 
     if (!id || isNaN(parseInt(id))) {
       return NextResponse.json(
-        { error: 'Valid ID is required', code: 'INVALID_ID' },
-        { status: 400 }
+        { error: "Valid ID is required", code: "INVALID_ID" },
+        { status: 400 },
       );
     }
 
@@ -299,8 +335,8 @@ export async function PUT(request: NextRequest) {
 
     if (existing.length === 0) {
       return NextResponse.json(
-        { error: 'Payroll run not found', code: 'NOT_FOUND' },
-        { status: 404 }
+        { error: "Payroll run not found", code: "NOT_FOUND" },
+        { status: 404 },
       );
     }
 
@@ -313,27 +349,34 @@ export async function PUT(request: NextRequest) {
     if (status !== undefined) {
       if (!VALID_STATUSES.includes(status)) {
         return NextResponse.json(
-          { 
-            error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}`,
-            code: 'INVALID_STATUS'
+          {
+            error: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}`,
+            code: "INVALID_STATUS",
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
       updates.status = status;
 
       // Auto-set processedAt if status changes to completed or approved
-      if ((status === 'completed' || status === 'approved') && !processedAt && !existing[0].processedAt) {
+      if (
+        (status === "completed" || status === "approved") &&
+        !processedAt &&
+        !existing[0].processedAt
+      ) {
         updates.processedAt = new Date().toISOString();
       }
     }
 
     // Validate and add totalEmployees
     if (totalEmployees !== undefined) {
-      if (typeof totalEmployees !== 'number' || totalEmployees < 0) {
+      if (typeof totalEmployees !== "number" || totalEmployees < 0) {
         return NextResponse.json(
-          { error: 'totalEmployees must be a non-negative number', code: 'INVALID_TOTAL_EMPLOYEES' },
-          { status: 400 }
+          {
+            error: "totalEmployees must be a non-negative number",
+            code: "INVALID_TOTAL_EMPLOYEES",
+          },
+          { status: 400 },
         );
       }
       updates.totalEmployees = totalEmployees;
@@ -341,10 +384,13 @@ export async function PUT(request: NextRequest) {
 
     // Validate and add totalAmount
     if (totalAmount !== undefined) {
-      if (typeof totalAmount !== 'number' || totalAmount < 0) {
+      if (typeof totalAmount !== "number" || totalAmount < 0) {
         return NextResponse.json(
-          { error: 'totalAmount must be a non-negative number', code: 'INVALID_TOTAL_AMOUNT' },
-          { status: 400 }
+          {
+            error: "totalAmount must be a non-negative number",
+            code: "INVALID_TOTAL_AMOUNT",
+          },
+          { status: 400 },
         );
       }
       updates.totalAmount = totalAmount;
@@ -363,10 +409,10 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(updated[0], { status: 200 });
   } catch (error) {
-    console.error('PUT error:', error);
+    console.error("PUT error:", error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error },
-      { status: 500 }
+      { error: "Internal server error: " + error },
+      { status: 500 },
     );
   }
 }
@@ -376,26 +422,32 @@ export async function DELETE(request: NextRequest) {
     // Authenticate user
     const authResult = await getAuthenticatedUser(request);
     if (authResult.error) {
-      return NextResponse.json({ error: authResult.error.message }, { status: authResult.error.status });
+      return NextResponse.json(
+        { error: authResult.error.message },
+        { status: authResult.error.status },
+      );
     }
-    
+
     const { user } = authResult;
 
     // Only admin can delete payroll runs
-    if (user.role !== 'admin') {
+    if (user.role !== "admin") {
       return NextResponse.json(
-        { error: 'Forbidden - Only admin can delete payroll runs', code: 'FORBIDDEN' },
-        { status: 403 }
+        {
+          error: "Forbidden - Only admin can delete payroll runs",
+          code: "FORBIDDEN",
+        },
+        { status: 403 },
       );
     }
 
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const id = searchParams.get("id");
 
     if (!id || isNaN(parseInt(id))) {
       return NextResponse.json(
-        { error: 'Valid ID is required', code: 'INVALID_ID' },
-        { status: 400 }
+        { error: "Valid ID is required", code: "INVALID_ID" },
+        { status: 400 },
       );
     }
 
@@ -408,19 +460,20 @@ export async function DELETE(request: NextRequest) {
 
     if (existing.length === 0) {
       return NextResponse.json(
-        { error: 'Payroll run not found', code: 'NOT_FOUND' },
-        { status: 404 }
+        { error: "Payroll run not found", code: "NOT_FOUND" },
+        { status: 404 },
       );
     }
 
     // Only allow deletion if status is draft
-    if (existing[0].status !== 'draft') {
+    if (existing[0].status !== "draft") {
       return NextResponse.json(
-        { 
-          error: 'Cannot delete payroll run. Only draft payroll runs can be deleted',
-          code: 'INVALID_STATUS_FOR_DELETE'
+        {
+          error:
+            "Cannot delete payroll run. Only draft payroll runs can be deleted",
+          code: "INVALID_STATUS_FOR_DELETE",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -430,17 +483,17 @@ export async function DELETE(request: NextRequest) {
       .returning();
 
     return NextResponse.json(
-      { 
-        message: 'Payroll run deleted successfully',
-        deleted: deleted[0]
+      {
+        message: "Payroll run deleted successfully",
+        deleted: deleted[0],
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
-    console.error('DELETE error:', error);
+    console.error("DELETE error:", error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error },
-      { status: 500 }
+      { error: "Internal server error: " + error },
+      { status: 500 },
     );
   }
 }

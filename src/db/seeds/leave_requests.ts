@@ -1,94 +1,94 @@
-import { db } from '@/db';
-import { leaveRequests } from '@/db/schema';
+import { db } from "@/db";
+import { leaveRequests } from "@/db/schema";
 
 async function main() {
-    const now = new Date();
-    
-    const getDaysAgo = (days: number): string => {
-        const date = new Date(now);
-        date.setDate(date.getDate() - days);
-        return date.toISOString().split('T')[0];
-    };
-    
-    const getDaysFuture = (days: number): string => {
-        const date = new Date(now);
-        date.setDate(date.getDate() + days);
-        return date.toISOString().split('T')[0];
-    };
+  const now = new Date();
 
-    const sampleLeaveRequests = [
-        {
-            employee_id: 1,
-            leave_type: 'Sick Leave',
-            start_date: getDaysAgo(3),
-            end_date: getDaysAgo(1),
-            total_days: 3.0,
-            reason: 'Severe flu and fever',
-            status: 'Approved',
-            approved_by: 5,
-            approved_at: getDaysAgo(4),
-            created_at: getDaysAgo(4),
-            updated_at: getDaysAgo(4),
-        },
-        {
-            employee_id: 7,
-            leave_type: 'Casual Leave',
-            start_date: getDaysFuture(5),
-            end_date: getDaysFuture(7),
-            total_days: 3.0,
-            reason: 'Family wedding ceremony',
-            status: 'Pending',
-            approved_by: null,
-            approved_at: null,
-            created_at: now.toISOString().split('T')[0],
-            updated_at: now.toISOString().split('T')[0],
-        },
-        {
-            employee_id: 12,
-            leave_type: 'Paid Leave',
-            start_date: getDaysFuture(1),
-            end_date: getDaysFuture(3),
-            total_days: 3.0,
-            reason: 'Personal vacation trip',
-            status: 'Rejected',
-            approved_by: 6,
-            approved_at: getDaysAgo(1),
-            created_at: getDaysAgo(2),
-            updated_at: getDaysAgo(1),
-        },
-        {
-            employee_id: 20,
-            leave_type: 'Paid Leave',
-            start_date: getDaysAgo(10),
-            end_date: getDaysAgo(8),
-            total_days: 3.0,
-            reason: 'Pre-planned family vacation',
-            status: 'Approved',
-            approved_by: 18,
-            approved_at: getDaysAgo(15),
-            created_at: getDaysAgo(20),
-            updated_at: getDaysAgo(15),
-        },
-        {
-            employee_id: 28,
-            leave_type: 'Unpaid Leave',
-            start_date: getDaysFuture(14),
-            end_date: getDaysFuture(28),
-            total_days: 15.0,
-            reason: 'Extended personal matter',
-            status: 'Pending',
-            approved_by: null,
-            approved_at: null,
-            created_at: now.toISOString().split('T')[0],
-            updated_at: now.toISOString().split('T')[0],
-        },
-    ];
+  const getDaysAgo = (days: number): string => {
+    const date = new Date(now);
+    date.setDate(date.getDate() - days);
+    return date.toISOString().split("T")[0];
+  };
 
-    await db.insert(leaveRequests).values(sampleLeaveRequests);
-    
-    console.log('✅ Leave requests seeder completed successfully');
+  const getDaysFuture = (days: number): string => {
+    const date = new Date(now);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split("T")[0];
+  };
+
+  const sampleLeaveRequests = [
+    {
+      employeeId: 1,
+      leaveType: "Sick Leave",
+      startDate: getDaysAgo(3),
+      endDate: getDaysAgo(1),
+      totalDays: 3.0,
+      reason: "Severe flu and fever",
+      status: "Approved",
+      approvedBy: 5,
+      approvedAt: getDaysAgo(4),
+      createdAt: getDaysAgo(4),
+      updatedAt: getDaysAgo(4),
+    },
+    {
+      employeeId: 7,
+      leaveType: "Casual Leave",
+      startDate: getDaysFuture(5),
+      endDate: getDaysFuture(7),
+      totalDays: 3.0,
+      reason: "Family wedding ceremony",
+      status: "Pending",
+      approvedBy: null,
+      approvedAt: null,
+      createdAt: now.toISOString().split("T")[0],
+      updatedAt: now.toISOString().split("T")[0],
+    },
+    {
+      employeeId: 12,
+      leaveType: "Paid Leave",
+      startDate: getDaysFuture(1),
+      endDate: getDaysFuture(3),
+      totalDays: 3.0,
+      reason: "Personal vacation trip",
+      status: "Rejected",
+      approvedBy: 6,
+      approvedAt: getDaysAgo(1),
+      createdAt: getDaysAgo(2),
+      updatedAt: getDaysAgo(1),
+    },
+    {
+      employeeId: 20,
+      leaveType: "Paid Leave",
+      startDate: getDaysAgo(10),
+      endDate: getDaysAgo(8),
+      totalDays: 3.0,
+      reason: "Pre-planned family vacation",
+      status: "Approved",
+      approvedBy: 18,
+      approvedAt: getDaysAgo(15),
+      createdAt: getDaysAgo(20),
+      updatedAt: getDaysAgo(15),
+    },
+    {
+      employeeId: 28,
+      leaveType: "Unpaid Leave",
+      startDate: getDaysFuture(14),
+      endDate: getDaysFuture(28),
+      totalDays: 15.0,
+      reason: "Extended personal matter",
+      status: "Pending",
+      approvedBy: null,
+      approvedAt: null,
+      createdAt: now.toISOString().split("T")[0],
+      updatedAt: now.toISOString().split("T")[0],
+    },
+  ];
+
+  await db.insert(leaveRequests).values(sampleLeaveRequests);
+
+  console.log("✅ Leave requests seeder completed successfully");
 }
 
 main().catch((error) => {
-    console.error('❌ Seeder failed:', error);
+  console.error("❌ Seeder failed:", error);
 });
