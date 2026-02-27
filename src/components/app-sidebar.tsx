@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import Link from "next/link"
+import * as React from "react";
+import Link from "next/link";
 import {
   Building2,
   Users,
@@ -17,8 +17,8 @@ import {
   Shield,
   Home,
   LayoutDashboard,
-} from "lucide-react"
-import { usePathname } from "next/navigation"
+} from "lucide-react";
+import { usePathname } from "next/navigation";
 
 import {
   Sidebar,
@@ -32,14 +32,14 @@ import {
   SidebarHeader,
   SidebarFooter,
   SidebarRail,
-} from "@/components/ui/sidebar"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { useSession } from "@/lib/auth-client"
+} from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { useSession } from "@/lib/auth-client";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: session, isPending } = useSession()
-  const pathname = usePathname()
+  const { data: session, isPending } = useSession();
+  const pathname = usePathname();
 
   const navMain = [
     {
@@ -84,7 +84,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Building2,
       isActive: pathname.startsWith("/organization"),
     },
-  ]
+  ];
 
   // Admin-only menu items
   const adminNavItems = [
@@ -94,12 +94,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Shield,
       isActive: pathname.startsWith("/admin"),
     },
-  ]
+  ];
 
-  // Filter nav items based on user role
-  const filteredNavMain = session?.user?.role === 'admin' || session?.user?.role === 'hr'
-    ? [...navMain, ...adminNavItems]
-    : navMain
+  const sessionUser = session?.user as any;
+  const filteredNavMain =
+    sessionUser?.role === "admin" || sessionUser?.role === "hr"
+      ? [...navMain, ...adminNavItems]
+      : navMain;
 
   const getInitials = (name: string) => {
     return name
@@ -107,8 +108,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       .map((n) => n[0])
       .join("")
       .toUpperCase()
-      .slice(0, 2)
-  }
+      .slice(0, 2);
+  };
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -119,11 +120,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
             <span className="text-lg font-bold">StaffOS</span>
-            <span className="text-xs text-muted-foreground">HRMS & Payroll</span>
+            <span className="text-xs text-muted-foreground">
+              HRMS & Payroll
+            </span>
           </div>
         </div>
       </SidebarHeader>
-      
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Platform</SidebarGroupLabel>
@@ -166,8 +169,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-      
+
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
