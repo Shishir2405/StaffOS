@@ -13,7 +13,6 @@ export const authClient = createAuthClient({
     },
     onSuccess: (ctx) => {
       const authToken = ctx.response.headers.get("set-auth-token");
-      // Store the token securely (e.g., in localStorage)
       if (authToken) {
         localStorage.setItem("bearer_token", authToken);
       }
@@ -28,12 +27,6 @@ export function useSession(): SessionData {
   const [isPending, setIsPending] = useState(true);
   const [isRefetching, setIsRefetching] = useState(false);
   const [error, setError] = useState<any>(null);
-
-  const refetch = () => {
-    setIsRefetching(true);
-    setError(null);
-    fetchSession();
-  };
 
   const fetchSession = async () => {
     try {
@@ -57,6 +50,12 @@ export function useSession(): SessionData {
       setIsPending(false);
       setIsRefetching(false);
     }
+  };
+
+  const refetch = async () => {
+    setIsRefetching(true);
+    setError(null);
+    await fetchSession();
   };
 
   useEffect(() => {
