@@ -1,8 +1,8 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
   "framework": "nextjs",
+  "installCommand": "bun install",
+  "buildCommand": "bun run build",
+  "devCommand": "bun run dev",
   "regions": ["iad1"],
   "headers": [
     {
@@ -18,7 +18,7 @@
         },
         {
           "key": "Access-Control-Allow-Methods",
-          "value": "GET,DELETE,PATCH,POST,PUT"
+          "value": "GET,DELETE,PATCH,POST,PUT,OPTIONS"
         },
         {
           "key": "Access-Control-Allow-Headers",
