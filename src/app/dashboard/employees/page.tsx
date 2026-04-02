@@ -17,12 +17,19 @@ import {
   RiDeleteBinLine,
   RiMailLine,
   RiPhoneLine,
-  RiLoader4Line,
-  RiFilterLine,
   RiCalendarLine,
+  RiFilterLine,
 } from "react-icons/ri";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { toast } from "sonner";
+import {
+  pageVariants,
+  fadeUp,
+  staggerContainer,
+  listItem,
+  buttonTap,
+  scaleIn,
+} from "@/lib/animations";
 
 /* ─── Types ──────────────────────────────────────────────── */
 interface Employee {
@@ -41,46 +48,26 @@ interface Employee {
 }
 
 /* ─── Helpers ────────────────────────────────────────────── */
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: (i = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.45, delay: i * 0.06 },
-  }),
-};
-
-const COLORS = [
-  "#E11D48",
-  "#1E2040",
-  "#7C3AED",
-  "#0891B2",
-  "#D97706",
-  "#16A34A",
-];
+const COLORS = ["#F97316", "#16A34A", "#7C3AED", "#2563EB", "#D97706", "#DC2626"];
 const colorFor = (i: number) => COLORS[i % COLORS.length];
-
 const initials = (first: string, last: string) =>
   `${first[0] ?? ""}${last[0] ?? ""}`.toUpperCase();
 
 /* ─── Status badge ───────────────────────────────────────── */
 function StatusBadge({ status }: { status: string }) {
   const cfg: Record<string, { bg: string; color: string }> = {
-    Active: { bg: "oklch(0.16 0.04 145 / 0.15)", color: "#16A34A" },
-    Inactive: { bg: "var(--secondary)", color: "var(--muted-foreground)" },
-    Terminated: {
-      bg: "oklch(0.68 0.22 13 / 0.12)",
-      color: "var(--brand-rose)",
-    },
+    Active: { bg: "var(--success-bg)", color: "var(--success)" },
+    Inactive: { bg: "var(--bg-subtle)", color: "var(--text-3)" },
+    Terminated: { bg: "var(--danger-bg)", color: "var(--danger)" },
   };
   const c = cfg[status] ?? cfg.Inactive;
   return (
     <span
-      className="text-xs font-medium px-2.5 py-1 rounded-full"
+      className="text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase"
       style={{
         background: c.bg,
         color: c.color,
-        border: `1px solid ${c.color}30`,
+        letterSpacing: "0.5px",
       }}
     >
       {status}
@@ -91,24 +78,18 @@ function StatusBadge({ status }: { status: string }) {
 /* ─── Type badge ─────────────────────────────────────────── */
 function TypeBadge({ type }: { type: string }) {
   const cfg: Record<string, { bg: string; color: string }> = {
-    "Full-time": {
-      bg: "oklch(0.20 0.07 262 / 0.10)",
-      color: "var(--brand-navy)",
-    },
-    "Part-time": { bg: "oklch(0.49 0.16 264 / 0.12)", color: "#7C3AED" },
-    Contract: { bg: "oklch(0.68 0.14 55 / 0.12)", color: "#D97706" },
+    "Full-time": { bg: "var(--brand-xlight)", color: "var(--brand)" },
+    "Part-time": { bg: "var(--info-bg)", color: "var(--info)" },
+    Contract: { bg: "var(--warning-bg)", color: "var(--warning)" },
   };
-  const c = cfg[type] ?? {
-    bg: "var(--secondary)",
-    color: "var(--muted-foreground)",
-  };
+  const c = cfg[type] ?? { bg: "var(--bg-subtle)", color: "var(--text-3)" };
   return (
     <span
-      className="text-xs font-medium px-2.5 py-1 rounded-full"
+      className="text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase"
       style={{
         background: c.bg,
         color: c.color,
-        border: `1px solid ${c.color}30`,
+        letterSpacing: "0.5px",
       }}
     >
       {type}
@@ -116,36 +97,36 @@ function TypeBadge({ type }: { type: string }) {
   );
 }
 
-/* ─── Stat card ──────────────────────────────────────────── */
+/* ─── Animated Stat card ─────────────────────────────────── */
 function StatCard({
   label,
   value,
   icon: Icon,
   accent,
-  index,
 }: {
   label: string;
   value: number;
   icon: React.ElementType;
   accent: string;
-  index: number;
 }) {
   return (
     <motion.div
-      custom={index}
       variants={fadeUp}
-      initial="hidden"
-      animate="visible"
-      className="relative rounded-2xl p-5 overflow-hidden"
-      style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+      className="relative rounded-[var(--r-lg)] p-5 overflow-hidden transition-all duration-200"
+      style={{
+        background: "var(--bg-raised)",
+        border: "1px solid var(--border-1)",
+        boxShadow: "var(--shadow-sm)",
+      }}
+      whileHover={{ y: -3, boxShadow: "var(--shadow-md)" }}
     >
       <div
         className="absolute -top-5 -right-5 w-20 h-20 rounded-full pointer-events-none"
-        style={{ background: accent, filter: "blur(24px)", opacity: 0.15 }}
+        style={{ background: accent, filter: "blur(24px)", opacity: 0.12 }}
       />
       <div className="flex items-start justify-between mb-4">
         <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center"
+          className="w-9 h-9 rounded-[var(--r-md)] flex items-center justify-center"
           style={{ background: accent + "18", border: `1px solid ${accent}28` }}
         >
           <Icon size={17} style={{ color: accent }} />
@@ -153,16 +134,11 @@ function StatCard({
       </div>
       <p
         className="text-2xl font-bold mb-0.5"
-        style={{
-          fontFamily: "var(--font-playfair)",
-          color: "var(--foreground)",
-        }}
+        style={{ fontFamily: "var(--font-mono-face)", color: "var(--text-1)" }}
       >
         {value}
       </p>
-      <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-        {label}
-      </p>
+      <p className="label-caps">{label}</p>
     </motion.div>
   );
 }
@@ -184,34 +160,31 @@ function StyledSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full appearance-none text-sm pl-3 pr-8 py-2.5 rounded-xl outline-none cursor-pointer transition-all"
+        className="w-full appearance-none text-sm pl-3 pr-8 py-2.5 rounded-[var(--r-md)] outline-none cursor-pointer transition-all"
         style={{
-          background: "var(--card)",
-          border: "1.5px solid var(--border)",
-          color: "var(--foreground)",
-          fontFamily: "var(--font-dm-sans)",
+          background: "var(--bg-subtle)",
+          border: "1.5px solid var(--border-1)",
+          color: "var(--text-1)",
+          fontFamily: "var(--font-body)",
         }}
         onFocus={(e) => {
-          e.currentTarget.style.borderColor = "var(--brand-rose)";
-          e.currentTarget.style.boxShadow =
-            "0 0 0 3px oklch(0.578 0.232 13 / 0.10)";
+          e.currentTarget.style.borderColor = "var(--brand)";
+          e.currentTarget.style.boxShadow = "0 0 0 3px rgba(249,115,22,0.15)";
         }}
         onBlur={(e) => {
-          e.currentTarget.style.borderColor = "var(--border)";
+          e.currentTarget.style.borderColor = "var(--border-1)";
           e.currentTarget.style.boxShadow = "none";
         }}
       >
         <option value="all">{placeholder}</option>
         {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
+          <option key={o.value} value={o.value}>{o.label}</option>
         ))}
       </select>
       <RiFilterLine
         size={13}
         className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
-        style={{ color: "var(--muted-foreground)" }}
+        style={{ color: "var(--text-3)" }}
       />
     </div>
   );
@@ -219,12 +192,10 @@ function StyledSelect({
 
 /* ─── Row action menu ────────────────────────────────────── */
 function RowMenu({
-  employee,
   onDelete,
   onView,
   onEdit,
 }: {
-  employee: Employee;
   onDelete: () => void;
   onView: () => void;
   onEdit: () => void;
@@ -232,88 +203,64 @@ function RowMenu({
   const [open, setOpen] = useState(false);
   return (
     <div className="relative flex justify-end">
-      <button
+      <motion.button
+        whileTap={buttonTap}
         onClick={() => setOpen(!open)}
         className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
         style={{
           background: "transparent",
           border: "none",
           cursor: "pointer",
-          color: "var(--muted-foreground)",
+          color: "var(--text-3)",
         }}
         onMouseEnter={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.background =
-            "var(--secondary)";
+          (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-subtle)";
         }}
         onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.background =
-            "transparent";
+          (e.currentTarget as HTMLButtonElement).style.background = "transparent";
         }}
       >
         <RiMoreLine size={16} />
-      </button>
+      </motion.button>
       <AnimatePresence>
         {open && (
           <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setOpen(false)}
-            />
+            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -4 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -4 }}
-              transition={{ duration: 0.13 }}
-              className="absolute right-0 top-9 z-50 rounded-xl overflow-hidden py-1"
+              variants={scaleIn}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="absolute right-0 top-9 z-50 rounded-[var(--r-lg)] overflow-hidden py-1"
               style={{
-                background: "var(--card)",
-                border: "1px solid var(--border)",
-                boxShadow: "0 8px 24px -6px oklch(0 0 0 / 0.15)",
+                background: "var(--bg-raised)",
+                border: "1px solid var(--border-1)",
+                boxShadow: "var(--shadow-lg)",
                 minWidth: 160,
-                fontFamily: "var(--font-dm-sans)",
+                fontFamily: "var(--font-body)",
               }}
             >
               {[
-                {
-                  icon: RiEyeLine,
-                  label: "View Details",
-                  onClick: onView,
-                  color: "var(--foreground)",
-                },
-                {
-                  icon: RiEditLine,
-                  label: "Edit",
-                  onClick: onEdit,
-                  color: "var(--foreground)",
-                },
-                {
-                  icon: RiDeleteBinLine,
-                  label: "Delete",
-                  onClick: onDelete,
-                  color: "var(--brand-rose)",
-                },
+                { icon: RiEyeLine, label: "View Details", onClick: onView, color: "var(--text-1)" },
+                { icon: RiEditLine, label: "Edit", onClick: onEdit, color: "var(--text-1)" },
+                { icon: RiDeleteBinLine, label: "Delete", onClick: onDelete, color: "var(--danger)" },
               ].map((item, i) => (
                 <button
                   key={item.label}
-                  onClick={() => {
-                    item.onClick();
-                    setOpen(false);
-                  }}
+                  onClick={() => { item.onClick(); setOpen(false); }}
                   className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-left transition-colors"
                   style={{
                     background: "transparent",
                     border: "none",
                     cursor: "pointer",
                     color: item.color,
-                    borderTop: i === 2 ? "1px solid var(--border)" : "none",
+                    borderTop: i === 2 ? "1px solid var(--border-1)" : "none",
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background =
-                      "var(--secondary)";
+                    (e.currentTarget as HTMLButtonElement).style.background = "var(--brand-ghost)";
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background =
-                      "transparent";
+                    (e.currentTarget as HTMLButtonElement).style.background = "transparent";
                   }}
                 >
                   <item.icon size={14} style={{ flexShrink: 0 }} />
@@ -325,6 +272,55 @@ function RowMenu({
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+/* ─── Mobile Employee Card ───────────────────────────────── */
+function EmployeeMobileCard({ emp, i, router, handleDelete }: {
+  emp: Employee; i: number; router: any; handleDelete: (id: number) => void;
+}) {
+  return (
+    <motion.div
+      variants={listItem}
+      className="p-4 rounded-[var(--r-lg)] transition-all duration-200"
+      style={{
+        background: "var(--bg-raised)",
+        border: "1px solid var(--border-1)",
+        boxShadow: "var(--shadow-sm)",
+      }}
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0"
+          style={{ background: colorFor(i) }}
+        >
+          {initials(emp.firstName, emp.lastName)}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold truncate" style={{ color: "var(--text-1)" }}>
+            {emp.firstName} {emp.lastName}
+          </p>
+          <p className="text-xs truncate" style={{ color: "var(--text-3)" }}>{emp.designation}</p>
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <StatusBadge status={emp.employmentStatus} />
+            <TypeBadge type={emp.employmentType} />
+          </div>
+          <div className="flex items-center gap-3 mt-2">
+            <span className="text-xs flex items-center gap-1" style={{ color: "var(--text-3)" }}>
+              <RiBuildingLine size={11} /> {emp.department}
+            </span>
+            <span className="text-xs" style={{ color: "var(--text-3)", fontFamily: "var(--font-mono-face)" }}>
+              {emp.employeeCode}
+            </span>
+          </div>
+        </div>
+        <RowMenu
+          onView={() => router.push(`/dashboard/employees/${emp.id}`)}
+          onEdit={() => router.push(`/dashboard/employees/${emp.id}/edit`)}
+          onDelete={() => handleDelete(emp.id)}
+        />
+      </div>
+    </motion.div>
   );
 }
 
@@ -353,8 +349,7 @@ export default function EmployeesPage() {
       const params = new URLSearchParams();
       if (search) params.append("search", search);
       if (deptFilter !== "all") params.append("department", deptFilter);
-      if (statusFilter !== "all")
-        params.append("employmentStatus", statusFilter);
+      if (statusFilter !== "all") params.append("employmentStatus", statusFilter);
       if (typeFilter !== "all") params.append("employmentType", typeFilter);
       const token = localStorage.getItem("bearer_token");
       const res = await fetch(`/api/employees?${params}`, {
@@ -362,13 +357,7 @@ export default function EmployeesPage() {
       });
       if (res.ok) {
         const d = await res.json();
-        setEmployees(
-          d.success && Array.isArray(d.data)
-            ? d.data
-            : Array.isArray(d)
-              ? d
-              : [],
-        );
+        setEmployees(d.success && Array.isArray(d.data) ? d.data : Array.isArray(d) ? d : []);
       }
     } catch {
       toast.error("Failed to fetch employees");
@@ -394,17 +383,8 @@ export default function EmployeesPage() {
     }
   };
 
-  const departments = [
-    "Engineering",
-    "Sales",
-    "Marketing",
-    "HR",
-    "Finance",
-    "Operations",
-  ];
-  const active = employees.filter(
-    (e) => e.employmentStatus === "Active",
-  ).length;
+  const departments = ["Engineering", "Sales", "Marketing", "HR", "Finance", "Operations"];
+  const active = employees.filter((e) => e.employmentStatus === "Active").length;
   const deptCount = new Set(employees.map((e) => e.department)).size;
   const newThisMonth = employees.filter((e) => {
     const d = new Date(e.dateOfJoining);
@@ -412,232 +392,160 @@ export default function EmployeesPage() {
     return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
   }).length;
 
-  if (isPending)
+  if (isPending) {
     return (
       <DashboardLayout title="Employees">
-        <div
-          className="flex items-center justify-center h-80 gap-2"
-          style={{ color: "var(--muted-foreground)" }}
-        >
-          <motion.span
-            animate={{ rotate: 360 }}
-            transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-          >
-            <RiLoader4Line size={20} />
-          </motion.span>
-          <span className="text-sm">Loading…</span>
+        <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+          <div className="skeleton-pulse h-16 rounded-[var(--r-lg)]" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="skeleton-pulse h-28 rounded-[var(--r-lg)]" />
+            ))}
+          </div>
+          <div className="skeleton-pulse h-96 rounded-[var(--r-lg)]" />
         </div>
       </DashboardLayout>
     );
+  }
 
   return (
-    <DashboardLayout
-      title="Employees"
-      subtitle="Manage your organisation's people"
-    >
-      <div
-        className="p-6 space-y-6"
-        style={{ fontFamily: "var(--font-dm-sans)" }}
+    <DashboardLayout title="Employees" subtitle="Manage your organisation's people">
+      <motion.div
+        variants={pageVariants}
+        initial="hidden"
+        animate="visible"
+        className="p-4 sm:p-6 lg:p-8 space-y-6"
+        style={{ fontFamily: "var(--font-body)" }}
       >
         {/* ── Page header ──────────────────────────────────── */}
         <motion.div
-          custom={0}
           variants={fadeUp}
-          initial="hidden"
-          animate="visible"
           className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         >
           <div>
-            <h1
-              className="text-2xl font-bold"
-              style={{
-                fontFamily: "var(--font-playfair)",
-                color: "var(--foreground)",
-              }}
-            >
+            <h1 style={{ fontFamily: "var(--font-display)", color: "var(--text-1)" }}>
               Employee Directory
             </h1>
-            <p
-              className="text-sm mt-0.5"
-              style={{ color: "var(--muted-foreground)" }}
-            >
-              {employees.length} employee{employees.length !== 1 ? "s" : ""}{" "}
-              total
+            <p className="text-sm mt-0.5" style={{ color: "var(--text-3)" }}>
+              {employees.length} employee{employees.length !== 1 ? "s" : ""} total
             </p>
           </div>
           <div className="flex items-center gap-2.5">
-            <button
+            <motion.button
+              whileTap={buttonTap}
+              whileHover={{ opacity: 0.92 }}
               onClick={fetchEmployees}
-              className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-xl transition-all"
+              className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-[var(--r-md)] transition-all"
               style={{
-                background: "var(--card)",
-                border: "1.5px solid var(--border)",
-                color: "var(--foreground)",
+                background: "var(--bg-raised)",
+                border: "1.5px solid var(--border-1)",
+                color: "var(--text-1)",
                 cursor: "pointer",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.background =
-                  "var(--secondary)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.background =
-                  "var(--card)";
               }}
             >
               <RiDownloadLine size={15} /> Export
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileTap={buttonTap}
+              whileHover={{ opacity: 0.92 }}
               onClick={() => router.push("/dashboard/employees/new")}
-              className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-xl transition-all hover:opacity-90"
+              className="flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-[var(--r-md)] transition-all"
               style={{
-                background: "var(--brand-navy)",
-                color: "white",
+                background: "var(--brand)",
+                color: "var(--text-on-brand)",
                 border: "none",
                 cursor: "pointer",
-                boxShadow: "0 4px 16px -4px oklch(0.198 0.068 262 / 0.35)",
+                boxShadow: "0 4px 16px -4px rgba(249,115,22,0.35)",
               }}
             >
               <RiAddLine size={15} /> Add Employee
-            </button>
+            </motion.button>
           </div>
         </motion.div>
 
         {/* ── Stats ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            index={1}
-            label="Total Employees"
-            value={employees.length}
-            icon={RiGroupLine}
-            accent="#1E2040"
-          />
-          <StatCard
-            index={2}
-            label="Active"
-            value={active}
-            icon={RiUserFollowLine}
-            accent="#16A34A"
-          />
-          <StatCard
-            index={3}
-            label="Departments"
-            value={deptCount}
-            icon={RiBuildingLine}
-            accent="#7C3AED"
-          />
-          <StatCard
-            index={4}
-            label="Joined This Month"
-            value={newThisMonth}
-            icon={RiCalendarLine}
-            accent="#E11D48"
-          />
-        </div>
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        >
+          <StatCard label="Total Employees" value={employees.length} icon={RiGroupLine} accent="#F97316" />
+          <StatCard label="Active" value={active} icon={RiUserFollowLine} accent="#16A34A" />
+          <StatCard label="Departments" value={deptCount} icon={RiBuildingLine} accent="#7C3AED" />
+          <StatCard label="Joined This Month" value={newThisMonth} icon={RiCalendarLine} accent="#2563EB" />
+        </motion.div>
 
         {/* ── Filters ───────────────────────────────────────── */}
         <motion.div
-          custom={5}
           variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          className="rounded-2xl p-5"
+          className="rounded-[var(--r-lg)] p-4 sm:p-5"
           style={{
-            background: "var(--card)",
-            border: "1px solid var(--border)",
+            background: "var(--bg-raised)",
+            border: "1px solid var(--border-1)",
+            boxShadow: "var(--shadow-sm)",
           }}
         >
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Search */}
             <div className="relative sm:col-span-2 lg:col-span-1">
               <RiSearchLine
                 size={14}
                 className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                style={{ color: "var(--muted-foreground)" }}
+                style={{ color: "var(--text-3)" }}
               />
               <input
                 type="text"
-                placeholder="Search employees…"
+                placeholder="Search employees..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full text-sm pl-9 pr-3 py-2.5 rounded-xl outline-none transition-all"
+                className="w-full text-sm pl-9 pr-3 py-2.5 rounded-[var(--r-md)] outline-none transition-all"
                 style={{
-                  background: "var(--background)",
-                  border: "1.5px solid var(--border)",
-                  color: "var(--foreground)",
-                  fontFamily: "var(--font-dm-sans)",
+                  background: "var(--bg-subtle)",
+                  border: "1.5px solid var(--border-1)",
+                  color: "var(--text-1)",
+                  fontFamily: "var(--font-body)",
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "var(--brand-rose)";
-                  e.currentTarget.style.boxShadow =
-                    "0 0 0 3px oklch(0.578 0.232 13 / 0.10)";
+                  e.currentTarget.style.borderColor = "var(--brand)";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(249,115,22,0.15)";
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "var(--border)";
+                  e.currentTarget.style.borderColor = "var(--border-1)";
                   e.currentTarget.style.boxShadow = "none";
                 }}
               />
             </div>
-            <StyledSelect
-              value={deptFilter}
-              onChange={setDeptFilter}
-              placeholder="All Departments"
-              options={departments.map((d) => ({ label: d, value: d }))}
-            />
-            <StyledSelect
-              value={statusFilter}
-              onChange={setStatusFilter}
-              placeholder="All Statuses"
-              options={[
-                { label: "Active", value: "Active" },
-                { label: "Inactive", value: "Inactive" },
-                { label: "Terminated", value: "Terminated" },
-              ]}
-            />
-            <StyledSelect
-              value={typeFilter}
-              onChange={setTypeFilter}
-              placeholder="All Types"
-              options={[
-                { label: "Full-time", value: "Full-time" },
-                { label: "Part-time", value: "Part-time" },
-                { label: "Contract", value: "Contract" },
-              ]}
-            />
+            <StyledSelect value={deptFilter} onChange={setDeptFilter} placeholder="All Departments" options={departments.map((d) => ({ label: d, value: d }))} />
+            <StyledSelect value={statusFilter} onChange={setStatusFilter} placeholder="All Statuses" options={[{ label: "Active", value: "Active" }, { label: "Inactive", value: "Inactive" }, { label: "Terminated", value: "Terminated" }]} />
+            <StyledSelect value={typeFilter} onChange={setTypeFilter} placeholder="All Types" options={[{ label: "Full-time", value: "Full-time" }, { label: "Part-time", value: "Part-time" }, { label: "Contract", value: "Contract" }]} />
           </div>
         </motion.div>
 
-        {/* ── Table ─────────────────────────────────────────── */}
+        {/* ── Table / Cards ─────────────────────────────────── */}
         <motion.div
-          custom={6}
           variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          className="rounded-2xl overflow-hidden"
+          className="rounded-[var(--r-lg)] overflow-hidden"
           style={{
-            background: "var(--card)",
-            border: "1px solid var(--border)",
+            background: "var(--bg-raised)",
+            border: "1px solid var(--border-1)",
+            boxShadow: "var(--shadow-sm)",
           }}
         >
           {/* Table header */}
           <div
-            className="flex items-center justify-between px-6 py-4"
-            style={{ borderBottom: "1px solid var(--border)" }}
+            className="flex items-center justify-between px-4 sm:px-6 py-4"
+            style={{ borderBottom: "1px solid var(--border-1)" }}
           >
-            <h3
-              className="text-base font-semibold"
-              style={{
-                fontFamily: "var(--font-playfair)",
-                color: "var(--foreground)",
-              }}
-            >
+            <h3 style={{ fontFamily: "var(--font-display)", color: "var(--text-1)" }}>
               Employee List
             </h3>
             <span
               className="text-xs px-2.5 py-1 rounded-full"
               style={{
-                background: "var(--secondary)",
-                color: "var(--muted-foreground)",
-                border: "1px solid var(--border)",
+                background: "var(--bg-subtle)",
+                color: "var(--text-3)",
+                border: "1px solid var(--border-1)",
+                fontFamily: "var(--font-mono-face)",
               }}
             >
               {employees.length} records
@@ -645,221 +553,153 @@ export default function EmployeesPage() {
           </div>
 
           {loading ? (
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-4">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4 animate-pulse">
-                  <div
-                    className="w-10 h-10 rounded-xl flex-shrink-0"
-                    style={{ background: "var(--secondary)" }}
-                  />
+                <div key={i} className="flex items-center gap-4">
+                  <div className="skeleton-pulse w-10 h-10 rounded-full shrink-0" />
                   <div className="flex-1 space-y-2">
-                    <div
-                      className="h-3.5 rounded-lg w-48"
-                      style={{ background: "var(--secondary)" }}
-                    />
-                    <div
-                      className="h-3 rounded-lg w-32"
-                      style={{ background: "var(--secondary)" }}
-                    />
+                    <div className="skeleton-pulse h-3.5 rounded-lg w-48" />
+                    <div className="skeleton-pulse h-3 rounded-lg w-32" />
                   </div>
-                  <div
-                    className="h-6 w-16 rounded-full"
-                    style={{ background: "var(--secondary)" }}
-                  />
-                  <div
-                    className="h-6 w-16 rounded-full"
-                    style={{ background: "var(--secondary)" }}
-                  />
+                  <div className="skeleton-pulse h-6 w-16 rounded-full" />
                 </div>
               ))}
             </div>
           ) : employees.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
               <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
-                style={{
-                  background: "var(--secondary)",
-                  border: "1px solid var(--border)",
-                }}
+                className="w-16 h-16 rounded-[var(--r-lg)] flex items-center justify-center mb-4"
+                style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-1)" }}
               >
-                <RiGroupLine
-                  size={28}
-                  style={{ color: "var(--muted-foreground)" }}
-                />
+                <RiGroupLine size={28} style={{ color: "var(--text-3)" }} />
               </div>
-              <p
-                className="text-base font-semibold mb-1"
-                style={{ color: "var(--foreground)" }}
-              >
+              <p className="text-base font-semibold mb-1" style={{ color: "var(--text-1)" }}>
                 No employees found
               </p>
-              <p
-                className="text-sm mb-5"
-                style={{ color: "var(--muted-foreground)" }}
-              >
-                {search ||
-                deptFilter !== "all" ||
-                statusFilter !== "all" ||
-                typeFilter !== "all"
+              <p className="text-sm mb-5" style={{ color: "var(--text-3)" }}>
+                {search || deptFilter !== "all" || statusFilter !== "all" || typeFilter !== "all"
                   ? "Try adjusting your filters"
                   : "Get started by adding your first employee"}
               </p>
-              <button
+              <motion.button
+                whileTap={buttonTap}
                 onClick={() => router.push("/dashboard/employees/new")}
-                className="flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-xl"
+                className="flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-[var(--r-md)]"
                 style={{
-                  background: "var(--brand-navy)",
-                  color: "white",
+                  background: "var(--brand)",
+                  color: "var(--text-on-brand)",
                   border: "none",
                   cursor: "pointer",
                 }}
               >
                 <RiAddLine size={14} /> Add Employee
-              </button>
+              </motion.button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table
-                className="w-full"
-                style={{ fontFamily: "var(--font-dm-sans)" }}
-              >
-                <thead>
-                  <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                    {[
-                      "Employee",
-                      "Code",
-                      "Department",
-                      "Designation",
-                      "Type",
-                      "Status",
-                      "Contact",
-                      "",
-                    ].map((h) => (
-                      <th
-                        key={h}
-                        className="text-left px-5 py-3 text-xs font-semibold tracking-wide"
-                        style={{
-                          color: "var(--muted-foreground)",
-                          letterSpacing: "0.05em",
+            <>
+              {/* Desktop table */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full" style={{ fontFamily: "var(--font-body)" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid var(--border-1)" }}>
+                      {["Employee", "Code", "Department", "Designation", "Type", "Status", "Contact", ""].map((h) => (
+                        <th
+                          key={h}
+                          className="text-left px-5 py-3 label-caps"
+                          style={{ background: "var(--bg-subtle)" }}
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <motion.tbody variants={staggerContainer} initial="hidden" animate="visible">
+                    {employees.map((emp, i) => (
+                      <motion.tr
+                        key={emp.id}
+                        variants={listItem}
+                        style={{ borderBottom: "1px solid var(--border-1)" }}
+                        className="transition-colors"
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLTableRowElement).style.background = "var(--brand-ghost)";
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLTableRowElement).style.background = "transparent";
                         }}
                       >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {employees.map((emp, i) => (
-                    <motion.tr
-                      key={emp.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.035 }}
-                      style={{ borderBottom: "1px solid var(--border)" }}
-                      className="transition-colors"
-                      onMouseEnter={(e) => {
-                        (
-                          e.currentTarget as HTMLTableRowElement
-                        ).style.background = "var(--secondary)";
-                      }}
-                      onMouseLeave={(e) => {
-                        (
-                          e.currentTarget as HTMLTableRowElement
-                        ).style.background = "transparent";
-                      }}
-                    >
-                      {/* Employee */}
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
-                            style={{ background: colorFor(i) }}
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0"
+                              style={{ background: colorFor(i) }}
+                            >
+                              {initials(emp.firstName, emp.lastName)}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium" style={{ color: "var(--text-1)" }}>
+                                {emp.firstName} {emp.lastName}
+                              </p>
+                              <p className="text-xs flex items-center gap-1 mt-0.5" style={{ color: "var(--text-3)" }}>
+                                <RiMailLine size={11} /> {emp.email}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <code
+                            className="text-xs px-2 py-1 rounded-lg"
+                            style={{
+                              background: "var(--bg-subtle)",
+                              color: "var(--text-1)",
+                              fontFamily: "var(--font-mono-face)",
+                            }}
                           >
-                            {initials(emp.firstName, emp.lastName)}
-                          </div>
-                          <div>
-                            <p
-                              className="text-sm font-medium"
-                              style={{ color: "var(--foreground)" }}
-                            >
-                              {emp.firstName} {emp.lastName}
-                            </p>
-                            <p
-                              className="text-xs flex items-center gap-1 mt-0.5"
-                              style={{ color: "var(--muted-foreground)" }}
-                            >
-                              <RiMailLine size={11} />
-                              {emp.email}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      {/* Code */}
-                      <td className="px-5 py-3.5">
-                        <code
-                          className="text-xs px-2 py-1 rounded-lg"
-                          style={{
-                            background: "var(--secondary)",
-                            color: "var(--foreground)",
-                            fontFamily: "var(--font-mono)",
-                          }}
-                        >
-                          {emp.employeeCode}
-                        </code>
-                      </td>
-                      {/* Dept */}
-                      <td
-                        className="px-5 py-3.5 text-sm"
-                        style={{ color: "var(--foreground)" }}
-                      >
-                        {emp.department}
-                      </td>
-                      {/* Designation */}
-                      <td
-                        className="px-5 py-3.5 text-sm"
-                        style={{ color: "var(--muted-foreground)" }}
-                      >
-                        {emp.designation}
-                      </td>
-                      {/* Type */}
-                      <td className="px-5 py-3.5">
-                        <TypeBadge type={emp.employmentType} />
-                      </td>
-                      {/* Status */}
-                      <td className="px-5 py-3.5">
-                        <StatusBadge status={emp.employmentStatus} />
-                      </td>
-                      {/* Contact */}
-                      <td className="px-5 py-3.5">
-                        <p
-                          className="text-xs flex items-center gap-1"
-                          style={{ color: "var(--muted-foreground)" }}
-                        >
-                          <RiPhoneLine size={11} />
-                          {emp.phone}
-                        </p>
-                      </td>
-                      {/* Actions */}
-                      <td className="px-5 py-3.5">
-                        <RowMenu
-                          employee={emp}
-                          onView={() =>
-                            router.push(`/dashboard/employees/${emp.id}`)
-                          }
-                          onEdit={() =>
-                            router.push(`/dashboard/employees/${emp.id}/edit`)
-                          }
-                          onDelete={() => handleDelete(emp.id)}
-                        />
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                            {emp.employeeCode}
+                          </code>
+                        </td>
+                        <td className="px-5 py-3.5 text-sm" style={{ color: "var(--text-1)" }}>{emp.department}</td>
+                        <td className="px-5 py-3.5 text-sm" style={{ color: "var(--text-3)" }}>{emp.designation}</td>
+                        <td className="px-5 py-3.5"><TypeBadge type={emp.employmentType} /></td>
+                        <td className="px-5 py-3.5"><StatusBadge status={emp.employmentStatus} /></td>
+                        <td className="px-5 py-3.5">
+                          <p className="text-xs flex items-center gap-1" style={{ color: "var(--text-3)" }}>
+                            <RiPhoneLine size={11} /> {emp.phone}
+                          </p>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <RowMenu
+                            onView={() => router.push(`/dashboard/employees/${emp.id}`)}
+                            onEdit={() => router.push(`/dashboard/employees/${emp.id}/edit`)}
+                            onDelete={() => handleDelete(emp.id)}
+                          />
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </motion.tbody>
+                </table>
+              </div>
+
+              {/* Mobile card layout */}
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+                className="sm:hidden p-4 space-y-3"
+              >
+                {employees.map((emp, i) => (
+                  <EmployeeMobileCard
+                    key={emp.id}
+                    emp={emp}
+                    i={i}
+                    router={router}
+                    handleDelete={handleDelete}
+                  />
+                ))}
+              </motion.div>
+            </>
           )}
         </motion.div>
-      </div>
+      </motion.div>
     </DashboardLayout>
   );
 }
