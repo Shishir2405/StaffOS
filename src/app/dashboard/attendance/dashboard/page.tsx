@@ -260,7 +260,7 @@ export default function AttendanceDashboardPage() {
               className={`
                 aspect-square border rounded-lg p-2 flex flex-col items-center justify-center
                 ${isToday ? "border-primary border-2" : ""}
-                ${data?.status === "present" ? "bg-green-50 dark:bg-green-950/20" : "bg-red-50 dark:bg-red-950/20"}
+                ${data?.status === "present" ? "bg-green-50" : "bg-red-50"}
               `}
             >
               <div className="text-sm font-semibold mb-1">{day}</div>
@@ -518,8 +518,8 @@ export default function AttendanceDashboardPage() {
                               }
                               className={
                                 day.status === "present"
-                                  ? "bg-green-100 dark:bg-green-900/30 text-green-900 dark:text-green-100"
-                                  : "bg-red-100 dark:bg-red-900/30 text-red-900 dark:text-red-100"
+                                  ? "bg-green-100 text-green-900"
+                                  : "bg-red-100 text-red-900"
                               }
                             >
                               {day.status === "present" ? (
@@ -760,11 +760,11 @@ export default function AttendanceDashboardPage() {
                     <span className="text-sm">Today</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded bg-green-50 dark:bg-green-950/20 border" />
+                    <div className="w-8 h-8 rounded bg-green-50 border" />
                     <span className="text-sm">Present</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded bg-red-50 dark:bg-red-950/20 border" />
+                    <div className="w-8 h-8 rounded bg-red-50 border" />
                     <span className="text-sm">Absent</span>
                   </div>
                   <div className="flex items-center gap-2">
