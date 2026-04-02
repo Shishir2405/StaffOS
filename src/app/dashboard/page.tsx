@@ -22,7 +22,7 @@ import {
 } from "react-icons/ri";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useSession } from "@/lib/auth-client";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/custom-toast";
 import {
   pageVariants,
   fadeUp,

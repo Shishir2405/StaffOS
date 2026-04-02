@@ -13,7 +13,7 @@ import type { LegendPayload } from "recharts/types/component/DefaultLegendConten
 import { cn } from "@/lib/utils";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
-const THEMES = { light: "", ".dark" } as const;
+const THEMES = { light: "" } as const;
 
 export type ChartConfig = {
   [k in string]: {

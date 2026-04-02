@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Inter, DM_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/sonner"
-import { AutoGeofenceMonitor } from "@/components/auto-geofence-monitor"
+import { Providers } from "@/components/providers";
+import { AutoGeofenceMonitor } from "@/components/auto-geofence-monitor";
 
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-display",
@@ -104,16 +103,10 @@ export default function RootLayout({
         <meta name="theme-color" content="#FDFAF5" />
       </head>
       <body className="antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          forcedTheme="light"
-          disableTransitionOnChange
-        >
+        <Providers>
           <AutoGeofenceMonitor />
           {children}
-          <Toaster />
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

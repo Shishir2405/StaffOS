@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useSession, authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/custom-toast";
 import { buttonTap } from "@/lib/animations";
 
 /* ─── Nav config ─────────────────────────────────────────── */
