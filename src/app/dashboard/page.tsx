@@ -510,7 +510,7 @@ export default function Home() {
           variants={fadeUp}
           className="relative rounded-[var(--r-lg)] overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 sm:px-8 py-6 gap-4"
           style={{
-            background: "linear-gradient(135deg, var(--brand) 0%, var(--brand-hover) 100%)",
+            background: "linear-gradient(135deg, #1C1208 0%, #3D2B14 50%, #4A3520 100%)",
             minHeight: 110,
           }}
         >
@@ -584,7 +584,7 @@ export default function Home() {
             sub="All time"
             trend="neutral"
             icon={RiGroupLine}
-            accent="#F97316"
+            accent="#D97706"
           />
           <StatCard
             title="Present Today"
@@ -832,7 +832,7 @@ export default function Home() {
                       const inits =
                         `${emp.firstName[0]}${emp.lastName[0]}`.toUpperCase();
                       const colors = [
-                        "#F97316", "#16A34A", "#7C3AED",
+                        "#D97706", "#16A34A", "#7C3AED",
                         "#2563EB", "#D97706", "#DC2626",
                       ];
                       return (
@@ -968,7 +968,7 @@ export default function Home() {
                 <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {deptStats.map((dept, i) => {
                     const colors = [
-                      "#F97316", "#16A34A", "#7C3AED",
+                      "#D97706", "#16A34A", "#7C3AED",
                       "#2563EB", "#D97706", "#DC2626",
                     ];
                     const color = colors[i % colors.length];
@@ -1066,7 +1066,7 @@ export default function Home() {
                 icon={RiGroupLine}
                 label="Add Employee"
                 onClick={() => router.push("/dashboard/employees/new")}
-                accent="#F97316"
+                accent="#D97706"
               />
               <QuickAction
                 icon={RiCalendarCheckLine}

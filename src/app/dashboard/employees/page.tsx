@@ -48,7 +48,7 @@ interface Employee {
 }
 
 /* ─── Helpers ────────────────────────────────────────────── */
-const COLORS = ["#F97316", "#16A34A", "#7C3AED", "#2563EB", "#D97706", "#DC2626"];
+const COLORS = ["#D97706", "#16A34A", "#7C3AED", "#2563EB", "#D97706", "#DC2626"];
 const colorFor = (i: number) => COLORS[i % COLORS.length];
 const initials = (first: string, last: string) =>
   `${first[0] ?? ""}${last[0] ?? ""}`.toUpperCase();
@@ -169,7 +169,7 @@ function StyledSelect({
         }}
         onFocus={(e) => {
           e.currentTarget.style.borderColor = "var(--brand)";
-          e.currentTarget.style.boxShadow = "0 0 0 3px rgba(249,115,22,0.15)";
+          e.currentTarget.style.boxShadow = "0 0 0 3px rgba(217,119,6,0.12)";
         }}
         onBlur={(e) => {
           e.currentTarget.style.borderColor = "var(--border-1)";
@@ -455,7 +455,7 @@ export default function EmployeesPage() {
                 color: "var(--text-on-brand)",
                 border: "none",
                 cursor: "pointer",
-                boxShadow: "0 4px 16px -4px rgba(249,115,22,0.35)",
+                boxShadow: "0 4px 16px -4px rgba(217,119,6,0.25)",
               }}
             >
               <RiAddLine size={15} /> Add Employee
@@ -470,7 +470,7 @@ export default function EmployeesPage() {
           animate="visible"
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
         >
-          <StatCard label="Total Employees" value={employees.length} icon={RiGroupLine} accent="#F97316" />
+          <StatCard label="Total Employees" value={employees.length} icon={RiGroupLine} accent="#D97706" />
           <StatCard label="Active" value={active} icon={RiUserFollowLine} accent="#16A34A" />
           <StatCard label="Departments" value={deptCount} icon={RiBuildingLine} accent="#7C3AED" />
           <StatCard label="Joined This Month" value={newThisMonth} icon={RiCalendarLine} accent="#2563EB" />
@@ -507,7 +507,7 @@ export default function EmployeesPage() {
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = "var(--brand)";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(249,115,22,0.15)";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(217,119,6,0.12)";
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor = "var(--border-1)";
