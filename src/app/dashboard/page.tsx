@@ -30,6 +30,7 @@ import {
   listItem,
   buttonTap,
 } from "@/lib/animations";
+import { ActivityHeatmap, TeamPulse, ProductivityRing } from "@/components/innovative-widgets";
 
 /* ─── Types ──────────────────────────────────────────────── */
 interface Employee {
@@ -1089,6 +1090,36 @@ export default function Home() {
             </div>
           </Section>
         </motion.div>
+
+        {/* ── Innovative Widgets Row ───────────────────────── */}
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Activity Heatmap */}
+          <div className="sm:col-span-2 lg:col-span-1">
+            <ActivityHeatmap attendanceData={attendanceRecords} />
+          </div>
+
+          {/* Team Pulse */}
+          <TeamPulse
+            onlineEmployees={todayAtt
+              .filter((r) => !r.checkOutTime)
+              .map((r) => ({
+                name: r.employeeName || "Unknown",
+                initials: (r.employeeName || "U")
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase(),
+                zone: r.zoneName,
+              }))}
+          />
+
+          {/* Productivity Score */}
+          <ProductivityRing
+            score={employees.length > 0 ? attendancePct : 0}
+            label="Workforce Score"
+            sublabel="Based on today's attendance rate"
+          />
+        </div>
       </motion.div>
     </DashboardLayout>
   );
