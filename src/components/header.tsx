@@ -1,23 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  RiSunLine,
-  RiMoonLine,
-  RiComputerLine,
   RiNotification3Line,
   RiUserLine,
   RiLogoutBoxLine,
   RiArrowDownSLine,
-  RiCheckLine,
   RiSettings3Line,
+  RiSearchLine,
 } from "react-icons/ri";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useSession, authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { scaleIn, buttonTap } from "@/lib/animations";
 
 /* ─── Helpers ────────────────────────────────────────────── */
 const getInitials = (name: string) =>
@@ -27,114 +24,6 @@ const getInitials = (name: string) =>
     .join("")
     .toUpperCase()
     .slice(0, 2);
-
-/* ─── Theme menu ─────────────────────────────────────────── */
-function ThemeMenu() {
-  const { theme, setTheme } = useTheme();
-  const [open, setOpen] = useState(false);
-
-  const options = [
-    { label: "Light", value: "light", icon: RiSunLine },
-    { label: "Dark", value: "dark", icon: RiMoonLine },
-    { label: "System", value: "system", icon: RiComputerLine },
-  ];
-
-  const CurrentIcon =
-    theme === "dark"
-      ? RiMoonLine
-      : theme === "light"
-        ? RiSunLine
-        : RiComputerLine;
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
-        style={{
-          border: "1.5px solid var(--border)",
-          background: "transparent",
-          cursor: "pointer",
-          color: "var(--muted-foreground)",
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.background =
-            "var(--secondary)";
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.background =
-            "transparent";
-        }}
-      >
-        <CurrentIcon size={15} />
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setOpen(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, y: -6, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.97 }}
-              transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute right-0 top-11 z-50 rounded-xl overflow-hidden py-1"
-              style={{
-                background: "var(--card)",
-                border: "1px solid var(--border)",
-                boxShadow: "0 8px 24px -6px oklch(0 0 0 / 0.15)",
-                minWidth: 140,
-                fontFamily: "var(--font-dm-sans)",
-              }}
-            >
-              {options.map((opt) => {
-                const Icon = opt.icon;
-                const isActive = theme === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    onClick={() => {
-                      setTheme(opt.value);
-                      setOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors text-left"
-                    style={{
-                      background: isActive ? "var(--secondary)" : "transparent",
-                      color: isActive
-                        ? "var(--brand-rose)"
-                        : "var(--foreground)",
-                      cursor: "pointer",
-                      border: "none",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isActive)
-                        (
-                          e.currentTarget as HTMLButtonElement
-                        ).style.background = "var(--secondary)";
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive)
-                        (
-                          e.currentTarget as HTMLButtonElement
-                        ).style.background = "transparent";
-                    }}
-                  >
-                    <Icon size={14} style={{ flexShrink: 0 }} />
-                    {opt.label}
-                    {isActive && <RiCheckLine size={13} className="ml-auto" />}
-                  </button>
-                );
-              })}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
 
 /* ─── User menu ──────────────────────────────────────────── */
 function UserMenu() {
@@ -161,36 +50,38 @@ function UserMenu() {
 
   if (!user) {
     return (
-      <button
+      <motion.button
+        whileTap={buttonTap}
         onClick={() => router.push("/sign-in")}
-        className="text-sm font-medium px-4 py-2 rounded-xl transition-colors"
+        className="text-sm font-semibold px-4 py-2 rounded-[var(--r-md)] transition-colors"
         style={{
-          background: "var(--brand-navy)",
-          color: "white",
+          background: "var(--brand)",
+          color: "var(--text-on-brand)",
           border: "none",
           cursor: "pointer",
-          fontFamily: "var(--font-dm-sans)",
+          fontFamily: "var(--font-body)",
         }}
       >
         Sign In
-      </button>
+      </motion.button>
     );
   }
 
   return (
     <div className="relative">
-      <button
+      <motion.button
+        whileTap={buttonTap}
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-xl transition-colors"
+        className="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-[var(--r-md)] transition-colors"
         style={{
-          border: "1.5px solid var(--border)",
+          border: "1.5px solid var(--border-1)",
           background: "transparent",
           cursor: "pointer",
-          fontFamily: "var(--font-dm-sans)",
+          fontFamily: "var(--font-body)",
         }}
         onMouseEnter={(e) => {
           (e.currentTarget as HTMLButtonElement).style.background =
-            "var(--secondary)";
+            "var(--bg-subtle)";
         }}
         onMouseLeave={(e) => {
           (e.currentTarget as HTMLButtonElement).style.background =
@@ -199,8 +90,11 @@ function UserMenu() {
       >
         {/* Avatar */}
         <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0"
-          style={{ background: "var(--brand-rose)" }}
+          className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-semibold flex-shrink-0"
+          style={{
+            background: "var(--brand)",
+            color: "var(--text-on-brand)",
+          }}
         >
           {initials}
         </div>
@@ -208,7 +102,7 @@ function UserMenu() {
         {/* Name - hidden on small screens */}
         <span
           className="text-sm font-medium hidden sm:block max-w-[120px] truncate"
-          style={{ color: "var(--foreground)" }}
+          style={{ color: "var(--text-1)" }}
         >
           {user.name}
         </span>
@@ -216,12 +110,12 @@ function UserMenu() {
         <RiArrowDownSLine
           size={14}
           style={{
-            color: "var(--muted-foreground)",
+            color: "var(--text-3)",
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
             transition: "transform 0.2s ease",
           }}
         />
-      </button>
+      </motion.button>
 
       <AnimatePresence>
         {open && (
@@ -231,28 +125,31 @@ function UserMenu() {
               onClick={() => setOpen(false)}
             />
             <motion.div
-              initial={{ opacity: 0, y: -6, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.97 }}
-              transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute right-0 top-12 z-50 rounded-xl overflow-hidden"
+              variants={scaleIn}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="absolute right-0 top-12 z-50 rounded-[var(--r-lg)] overflow-hidden"
               style={{
-                background: "var(--card)",
-                border: "1px solid var(--border)",
-                boxShadow: "0 8px 24px -6px oklch(0 0 0 / 0.15)",
+                background: "var(--bg-raised)",
+                border: "1px solid var(--border-1)",
+                boxShadow: "var(--shadow-lg)",
                 minWidth: 200,
-                fontFamily: "var(--font-dm-sans)",
+                fontFamily: "var(--font-body)",
               }}
             >
               {/* User info header */}
               <div
                 className="px-4 py-3.5"
-                style={{ borderBottom: "1px solid var(--border)" }}
+                style={{ borderBottom: "1px solid var(--border-1)" }}
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
-                    style={{ background: "var(--brand-rose)" }}
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0"
+                    style={{
+                      background: "var(--brand)",
+                      color: "var(--text-on-brand)",
+                    }}
                   >
                     {initials}
                   </div>
@@ -260,15 +157,15 @@ function UserMenu() {
                     <p
                       className="text-sm font-semibold truncate"
                       style={{
-                        color: "var(--foreground)",
-                        fontFamily: "var(--font-playfair)",
+                        color: "var(--text-1)",
+                        fontFamily: "var(--font-display)",
                       }}
                     >
                       {user.name}
                     </p>
                     <p
                       className="text-xs truncate"
-                      style={{ color: "var(--muted-foreground)" }}
+                      style={{ color: "var(--text-3)" }}
                     >
                       {user.email}
                     </p>
@@ -302,13 +199,13 @@ function UserMenu() {
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors text-left"
                     style={{
                       background: "transparent",
-                      color: "var(--foreground)",
+                      color: "var(--text-1)",
                       cursor: "pointer",
                       border: "none",
                     }}
                     onMouseEnter={(e) => {
                       (e.currentTarget as HTMLButtonElement).style.background =
-                        "var(--secondary)";
+                        "var(--brand-ghost)";
                     }}
                     onMouseLeave={(e) => {
                       (e.currentTarget as HTMLButtonElement).style.background =
@@ -318,7 +215,7 @@ function UserMenu() {
                     <item.icon
                       size={14}
                       style={{
-                        color: "var(--muted-foreground)",
+                        color: "var(--text-3)",
                         flexShrink: 0,
                       }}
                     />
@@ -330,20 +227,20 @@ function UserMenu() {
               {/* Sign out */}
               <div
                 className="py-1.5"
-                style={{ borderTop: "1px solid var(--border)" }}
+                style={{ borderTop: "1px solid var(--border-1)" }}
               >
                 <button
                   onClick={handleSignOut}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors text-left"
                   style={{
                     background: "transparent",
-                    color: "var(--brand-rose)",
+                    color: "var(--danger)",
                     cursor: "pointer",
                     border: "none",
                   }}
                   onMouseEnter={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.background =
-                      "var(--brand-rose-soft)";
+                      "var(--danger-bg)";
                   }}
                   onMouseLeave={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.background =
@@ -365,17 +262,19 @@ function UserMenu() {
 /* ─── Notification bell ──────────────────────────────────── */
 function NotificationBell() {
   return (
-    <button
-      className="relative w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+    <motion.button
+      whileTap={buttonTap}
+      whileHover={{ opacity: 0.92 }}
+      className="relative w-9 h-9 rounded-[var(--r-md)] flex items-center justify-center transition-colors"
       style={{
-        border: "1.5px solid var(--border)",
+        border: "1.5px solid var(--border-1)",
         background: "transparent",
         cursor: "pointer",
-        color: "var(--muted-foreground)",
+        color: "var(--text-3)",
       }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLButtonElement).style.background =
-          "var(--secondary)";
+          "var(--bg-subtle)";
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLButtonElement).style.background = "transparent";
@@ -385,9 +284,9 @@ function NotificationBell() {
       {/* Unread dot */}
       <span
         className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
-        style={{ background: "var(--brand-rose)" }}
+        style={{ background: "var(--brand)" }}
       />
-    </button>
+    </motion.button>
   );
 }
 
@@ -395,16 +294,18 @@ function NotificationBell() {
 interface HeaderProps {
   title?: string;
   subtitle?: string;
+  onOpenCommandPalette?: () => void;
 }
 
-export function Header({ title, subtitle }: HeaderProps) {
+export function Header({ title, subtitle, onOpenCommandPalette }: HeaderProps) {
   return (
     <header
-      className="flex h-16 flex-shrink-0 items-center justify-between px-5 gap-4 sticky top-0 z-30"
+      className="flex h-16 flex-shrink-0 items-center justify-between px-4 sm:px-6 lg:px-8 gap-4 sticky top-0 z-30"
       style={{
-        background: "var(--background)",
-        borderBottom: "1px solid var(--border)",
-        fontFamily: "var(--font-dm-sans)",
+        background: "var(--bg-raised)",
+        borderBottom: "1px solid var(--border-1)",
+        boxShadow: "var(--shadow-sm)",
+        fontFamily: "var(--font-body)",
       }}
     >
       {/* Left — sidebar trigger + page title */}
@@ -412,7 +313,7 @@ export function Header({ title, subtitle }: HeaderProps) {
         <SidebarTrigger
           className="flex-shrink-0 w-8 h-8 rounded-lg transition-colors"
           style={{
-            color: "var(--muted-foreground)",
+            color: "var(--text-3)",
           }}
         />
 
@@ -421,8 +322,11 @@ export function Header({ title, subtitle }: HeaderProps) {
             <h1
               className="text-base font-semibold leading-tight truncate"
               style={{
-                fontFamily: "var(--font-playfair)",
-                color: "var(--foreground)",
+                fontFamily: "var(--font-display)",
+                color: "var(--text-1)",
+                fontSize: "16px",
+                fontWeight: 700,
+                letterSpacing: "-0.3px",
               }}
             >
               {title}
@@ -430,7 +334,7 @@ export function Header({ title, subtitle }: HeaderProps) {
             {subtitle && (
               <p
                 className="text-xs truncate"
-                style={{ color: "var(--muted-foreground)" }}
+                style={{ color: "var(--text-3)" }}
               >
                 {subtitle}
               </p>
@@ -439,12 +343,50 @@ export function Header({ title, subtitle }: HeaderProps) {
         )}
       </div>
 
-      {/* Right — date, notification, theme, user */}
+      {/* Center — pill-shaped search input */}
+      <div className="hidden md:flex flex-1 max-w-md mx-auto">
+        <button
+          onClick={onOpenCommandPalette}
+          className="w-full flex items-center gap-2.5 px-4 py-2 rounded-full transition-all"
+          style={{
+            background: "var(--bg-subtle)",
+            border: "1.5px solid var(--border-1)",
+            cursor: "pointer",
+            fontFamily: "var(--font-body)",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor =
+              "var(--border-2)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor =
+              "var(--border-1)";
+          }}
+        >
+          <RiSearchLine size={14} style={{ color: "var(--text-3)" }} />
+          <span className="text-sm" style={{ color: "var(--text-3)" }}>
+            Search...
+          </span>
+          <kbd
+            className="ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded"
+            style={{
+              background: "var(--bg-raised)",
+              color: "var(--text-3)",
+              border: "1px solid var(--border-1)",
+              fontFamily: "var(--font-mono-face)",
+            }}
+          >
+            ⌘K
+          </kbd>
+        </button>
+      </div>
+
+      {/* Right — notification + user */}
       <div className="flex items-center gap-2 flex-shrink-0">
         {/* Current date */}
         <span
-          className="text-xs hidden md:block mr-1"
-          style={{ color: "var(--muted-foreground)" }}
+          className="text-xs hidden lg:block mr-1"
+          style={{ color: "var(--text-3)" }}
         >
           {new Date().toLocaleDateString("en-US", {
             weekday: "short",
@@ -454,12 +396,11 @@ export function Header({ title, subtitle }: HeaderProps) {
         </span>
 
         <NotificationBell />
-        <ThemeMenu />
 
         {/* Divider */}
         <div
           className="w-px h-5 hidden sm:block"
-          style={{ background: "var(--border)" }}
+          style={{ background: "var(--border-1)" }}
         />
 
         <UserMenu />
