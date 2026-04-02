@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   RiDashboardLine,
   RiDashboardFill,
@@ -19,13 +19,9 @@ import {
   RiMoneyDollarCircleFill,
   RiBuildingLine,
   RiBuildingFill,
-  RiShieldCheckLine,
-  RiShieldCheckFill,
   RiShieldLine,
   RiShieldFill,
   RiLogoutBoxLine,
-  RiMoonLine,
-  RiSunLine,
 } from "react-icons/ri";
 import {
   Sidebar,
@@ -44,7 +40,7 @@ import {
 import { useSession, authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useTheme } from "next-themes";
+import { buttonTap } from "@/lib/animations";
 
 /* ─── Nav config ─────────────────────────────────────────── */
 const navMain = [
@@ -138,34 +134,31 @@ function NavItem({
         tooltip={item.title}
         className="relative h-10 rounded-xl transition-all duration-150"
         style={{
-          background: isActive ? "var(--brand-rose)" : "transparent",
-          color: isActive ? "white" : "oklch(1 0 0 / 0.55)",
+          background: isActive ? "var(--brand-xlight)" : "transparent",
+          color: isActive ? "var(--brand)" : "var(--text-2)",
+          borderLeft: isActive ? "3px solid var(--brand)" : "3px solid transparent",
         }}
       >
-        <Link href={item.url} className="flex items-center gap-3">
-          {/* Active left bar — only when expanded */}
-          {isActive && !collapsed && (
-            <motion.span
-              layoutId="nav-active-bar"
-              className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-white"
-              style={{ marginLeft: -8 }}
-              transition={{ type: "spring", stiffness: 400, damping: 35 }}
+        <motion.div whileHover={{ x: isActive ? 0 : 4 }} whileTap={buttonTap} transition={{ type: "spring", stiffness: 400, damping: 30 }}>
+          <Link href={item.url} className="flex items-center gap-3 w-full">
+            <Icon
+              size={17}
+              style={{
+                color: isActive ? "var(--brand)" : "var(--text-3)",
+                flexShrink: 0,
+              }}
             />
-          )}
-          <Icon
-            size={17}
-            style={{
-              color: isActive ? "white" : "oklch(1 0 0 / 0.50)",
-              flexShrink: 0,
-            }}
-          />
-          <span
-            className="text-sm font-medium truncate"
-            style={{ color: isActive ? "white" : "oklch(1 0 0 / 0.62)" }}
-          >
-            {item.title}
-          </span>
-        </Link>
+            <span
+              className="text-sm font-medium truncate"
+              style={{
+                color: isActive ? "var(--brand)" : "var(--text-2)",
+                fontFamily: "var(--font-body)",
+              }}
+            >
+              {item.title}
+            </span>
+          </Link>
+        </motion.div>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
@@ -176,7 +169,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession();
   const pathname = usePathname();
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
 
@@ -198,9 +190,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   };
 
-  const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
-  const isDark = theme === "dark";
-
   const user = session?.user;
   const initials = user?.name ? getInitials(user.name) : "U";
 
@@ -209,7 +198,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       collapsible="icon"
       style={
         {
-          "--sidebar-width": "15rem",
+          "--sidebar-width": "16rem",
           "--sidebar-width-icon": "4rem",
         } as React.CSSProperties
       }
@@ -218,29 +207,37 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {/* ── Header / Logo ─────────────────────────────────── */}
       <SidebarHeader
         style={{
-          background: "var(--brand-navy)",
-          borderBottom: "1px solid oklch(1 0 0 / 0.08)",
+          background: "var(--bg-subtle)",
+          borderBottom: "1px solid var(--border-1)",
           padding: "0",
         }}
       >
         <div className="flex items-center gap-3 px-4" style={{ height: 64 }}>
-          {/* Logo icon */}
+          {/* Logo icon — orange filled rounded square */}
           <div
             className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: "var(--brand-rose)" }}
+            style={{ background: "var(--brand)" }}
           >
-            <RiShieldCheckLine size={18} color="white" />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
           </div>
 
           {/* Brand name — hidden when icon-only */}
           <div className="flex flex-col group-data-[collapsible=icon]:hidden overflow-hidden">
             <span
-              className="text-white font-semibold text-base leading-tight"
-              style={{ fontFamily: "var(--font-playfair)" }}
+              className="font-bold text-base leading-tight"
+              style={{
+                fontFamily: "var(--font-display)",
+                color: "var(--text-1)",
+                fontWeight: 700,
+              }}
             >
               StaffOS
             </span>
-            <span className="text-xs" style={{ color: "oklch(1 0 0 / 0.38)" }}>
+            <span className="text-xs" style={{ color: "var(--text-3)" }}>
               HRMS & Payroll
             </span>
           </div>
@@ -250,19 +247,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {/* ── Nav content ───────────────────────────────────── */}
       <SidebarContent
         style={{
-          background: "var(--brand-navy)",
-          fontFamily: "var(--font-dm-sans)",
+          background: "var(--bg-subtle)",
+          fontFamily: "var(--font-body)",
         }}
       >
         <SidebarGroup style={{ padding: "12px 10px 0" }}>
           <SidebarGroupLabel
-            className="group-data-[collapsible=icon]:hidden"
+            className="group-data-[collapsible=icon]:hidden label-caps"
             style={{
-              color: "oklch(1 0 0 / 0.28)",
-              fontSize: "10px",
-              fontWeight: 600,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
               marginBottom: 4,
             }}
           >
@@ -287,17 +279,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           style={{
             padding: "12px 10px 0",
             marginTop: 8,
-            borderTop: "1px solid oklch(1 0 0 / 0.08)",
+            borderTop: "1px solid var(--border-1)",
           }}
         >
           <SidebarGroupLabel
-            className="group-data-[collapsible=icon]:hidden"
+            className="group-data-[collapsible=icon]:hidden label-caps"
             style={{
-              color: "oklch(1 0 0 / 0.28)",
-              fontSize: "10px",
-              fontWeight: 600,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
               marginBottom: 4,
             }}
           >
@@ -306,37 +293,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
           <SidebarGroupContent>
             <SidebarMenu style={{ gap: 2 }}>
-              {/* Theme toggle */}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip={isDark ? "Light Mode" : "Dark Mode"}
-                  onClick={toggleTheme}
-                  className="h-10 rounded-xl cursor-pointer"
-                  style={{
-                    background: "transparent",
-                    color: "oklch(1 0 0 / 0.55)",
-                  }}
-                >
-                  {isDark ? (
-                    <RiSunLine
-                      size={17}
-                      style={{ color: "oklch(1 0 0 / 0.50)", flexShrink: 0 }}
-                    />
-                  ) : (
-                    <RiMoonLine
-                      size={17}
-                      style={{ color: "oklch(1 0 0 / 0.50)", flexShrink: 0 }}
-                    />
-                  )}
-                  <span
-                    className="text-sm font-medium group-data-[collapsible=icon]:hidden"
-                    style={{ color: "oklch(1 0 0 / 0.62)" }}
-                  >
-                    {isDark ? "Light Mode" : "Dark Mode"}
-                  </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
               {/* Sign out */}
               <SidebarMenuItem>
                 <SidebarMenuButton
@@ -347,11 +303,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 >
                   <RiLogoutBoxLine
                     size={17}
-                    style={{ color: "oklch(1 0 0 / 0.50)", flexShrink: 0 }}
+                    style={{ color: "var(--text-3)", flexShrink: 0 }}
                   />
                   <span
                     className="text-sm font-medium group-data-[collapsible=icon]:hidden"
-                    style={{ color: "oklch(1 0 0 / 0.62)" }}
+                    style={{ color: "var(--text-2)" }}
                   >
                     Sign Out
                   </span>
@@ -365,8 +321,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {/* ── Footer / User ─────────────────────────────────── */}
       <SidebarFooter
         style={{
-          background: "var(--brand-navy)",
-          borderTop: "1px solid oklch(1 0 0 / 0.08)",
+          background: "var(--bg-subtle)",
+          borderTop: "1px solid var(--border-1)",
           padding: "12px 10px",
         }}
       >
@@ -384,10 +340,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 className="flex items-center gap-3"
                 style={{ textDecoration: "none" }}
               >
-                {/* Avatar */}
+                {/* Avatar — orange circle with initials */}
                 <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
-                  style={{ background: "var(--brand-rose)" }}
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0"
+                  style={{
+                    background: "var(--brand)",
+                    color: "var(--text-on-brand)",
+                  }}
                 >
                   {initials}
                 </div>
@@ -395,14 +354,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 {/* Name + email */}
                 <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
                   <span
-                    className="text-sm font-medium text-white truncate leading-tight"
-                    style={{ fontFamily: "var(--font-dm-sans)" }}
+                    className="text-sm font-medium truncate leading-tight"
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      color: "var(--text-1)",
+                    }}
                   >
                     {user?.name || "User"}
                   </span>
                   <span
                     className="text-xs truncate"
-                    style={{ color: "oklch(1 0 0 / 0.38)" }}
+                    style={{ color: "var(--text-3)" }}
                   >
                     {user?.email || ""}
                   </span>
