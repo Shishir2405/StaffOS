@@ -553,15 +553,15 @@ export default function GeofencingPage() {
         </div>
 
         {/* Info Card */}
-        <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
+        <Card className="border-blue-200 bg-blue-50">
           <CardContent className="pt-6">
             <div className="flex gap-3">
-              <Power className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <Power className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                <p className="text-sm font-medium text-blue-900">
                   Personal Geofence Control
                 </p>
-                <p className="text-sm text-blue-800 dark:text-blue-200">
+                <p className="text-sm text-blue-800">
                   Enable specific geofences to track your attendance. For example, if you work in Building A, 
                   enable only "Building A" geofence to automatically check in/out when you enter or leave that location.
                 </p>
