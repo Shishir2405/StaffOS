@@ -291,7 +291,7 @@ export default function AttendancePage() {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success(`🎯 Auto checked in at ${zone.name}`, {
+        toast.success(`Auto checked in at ${zone.name}`, {
           description: `Location accuracy: High`,
         });
         setIsCheckedIn(true);
@@ -321,7 +321,7 @@ export default function AttendancePage() {
       });
 
       if (response.ok) {
-        toast.info("🚪 Auto checked out (left geofence zone)");
+        toast.info("Auto checked out (left geofence zone)");
         setIsCheckedIn(false);
         setActiveCheckInId(null);
         fetchAttendanceData();
@@ -563,15 +563,15 @@ export default function AttendancePage() {
 
         {/* No Geofences Alert */}
         {!isLoadingGeofences && assignedGeofences.length === 0 && (
-          <Card className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+          <Card className="border-amber-500 bg-amber-50">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-amber-900 dark:text-amber-100">
+              <CardTitle className="flex items-center gap-2 text-amber-900">
                 <AlertCircle className="h-5 w-5" />
                 No Geofences Assigned
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-amber-800 dark:text-amber-200">
+              <p className="text-amber-800">
                 You don't have any geofence locations assigned yet. Please
                 contact your administrator to assign geofence locations for
                 automatic attendance tracking.
@@ -634,7 +634,7 @@ export default function AttendancePage() {
                   Current Location Status
                 </CardTitle>
                 <CardDescription>
-                  Auto-checking location every 3 seconds • 🟢 Auto attendance
+                  Auto-checking location every 3 seconds. Auto attendance
                   enabled
                 </CardDescription>
               </CardHeader>
@@ -646,7 +646,7 @@ export default function AttendancePage() {
                   </div>
                 ) : currentLocation ? (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <div className="flex items-center gap-2 text-green-600">
                       <CheckCircle2 className="h-5 w-5" />
                       <span>Location detected</span>
                     </div>
@@ -666,16 +666,16 @@ export default function AttendancePage() {
                     {/* Improved geofence status messaging */}
                     {isCheckedIn ? (
                       nearbyZones.length > 0 ? (
-                        <div className="rounded-lg border bg-green-50 dark:bg-green-950/20 p-4">
-                          <p className="font-medium text-green-900 dark:text-green-100 mb-2">
-                            ✅ Checked in • Currently within{" "}
+                        <div className="rounded-lg border bg-green-50 p-4">
+                          <p className="font-medium text-green-900 mb-2">
+                            Checked in. Currently within{" "}
                             {nearbyZones.length} zone(s):
                           </p>
                           <ul className="space-y-1">
                             {nearbyZones.map((zone) => (
                               <li
                                 key={zone.id}
-                                className="text-sm text-green-800 dark:text-green-200"
+                                className="text-sm text-green-800"
                               >
                                 • {zone.name}
                               </li>
@@ -683,40 +683,40 @@ export default function AttendancePage() {
                           </ul>
                         </div>
                       ) : (
-                        <div className="rounded-lg border bg-blue-50 dark:bg-blue-950/20 p-4">
-                          <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                            ℹ️ You're checked in but outside assigned zones
+                        <div className="rounded-lg border bg-blue-50 p-4">
+                          <p className="font-medium text-blue-900 mb-1">
+                            You're checked in but outside assigned zones
                           </p>
-                          <p className="text-sm text-blue-800 dark:text-blue-200">
+                          <p className="text-sm text-blue-800">
                             You'll be automatically checked out when system
                             confirms you've left the area
                           </p>
                         </div>
                       )
                     ) : nearbyZones.length > 0 ? (
-                      <div className="rounded-lg border bg-green-50 dark:bg-green-950/20 p-4">
-                        <p className="font-medium text-green-900 dark:text-green-100 mb-2">
-                          📍 You are within {nearbyZones.length} assigned
+                      <div className="rounded-lg border bg-green-50 p-4">
+                        <p className="font-medium text-green-900 mb-2">
+                          You are within {nearbyZones.length} assigned
                           zone(s):
                         </p>
                         <ul className="space-y-1">
                           {nearbyZones.map((zone) => (
                             <li
                               key={zone.id}
-                              className="text-sm text-green-800 dark:text-green-200"
+                              className="text-sm text-green-800"
                             >
                               • {zone.name}
                             </li>
                           ))}
                         </ul>
-                        <p className="text-sm text-green-800 dark:text-green-200 mt-2">
+                        <p className="text-sm text-green-800 mt-2">
                           Ready for check-in or waiting for auto check-in
                         </p>
                       </div>
                     ) : (
                       <div className="rounded-lg border bg-muted p-4">
                         <p className="text-sm text-muted-foreground">
-                          📍 Not within any assigned geofence zone
+                          Not within any assigned geofence zone
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
                           {assignedGeofences.length > 0
@@ -748,12 +748,12 @@ export default function AttendancePage() {
               <CardContent className="space-y-4">
                 {isCheckedIn ? (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 rounded-lg border bg-green-50 dark:bg-green-950/20">
+                    <div className="flex items-center justify-between p-4 rounded-lg border bg-green-50">
                       <div className="space-y-1">
-                        <p className="text-lg font-semibold text-green-900 dark:text-green-100">
-                          ✅ Currently Checked In
+                        <p className="text-lg font-semibold text-green-900">
+                          Currently Checked In
                         </p>
-                        <p className="text-sm text-green-700 dark:text-green-300">
+                        <p className="text-sm text-green-700">
                           You will be automatically checked out when you leave
                           the geofence zone
                         </p>
@@ -778,7 +778,7 @@ export default function AttendancePage() {
                     <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/50">
                       <div className="space-y-1">
                         <p className="text-lg font-semibold">
-                          ⏸️ Not Checked In
+                          Not Checked In
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {nearbyZones.length > 0
