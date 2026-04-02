@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
+import { useInView } from "react-intersection-observer";
 import {
   RiGroupLine,
   RiUserFollowLine,
@@ -16,14 +17,19 @@ import {
   RiArrowRightLine,
   RiArrowUpSLine,
   RiArrowDownSLine,
-  RiLoader4Line,
-  RiAlertLine,
   RiCalendarCheckLine,
   RiBarChartBoxLine,
 } from "react-icons/ri";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useSession } from "@/lib/auth-client";
 import { toast } from "sonner";
+import {
+  pageVariants,
+  fadeUp,
+  staggerContainer,
+  listItem,
+  buttonTap,
+} from "@/lib/animations";
 
 /* ─── Types ──────────────────────────────────────────────── */
 interface Employee {
@@ -53,15 +59,111 @@ interface Department {
   employeeCount?: number;
 }
 
-/* ─── Fade-up variant ────────────────────────────────────── */
-const fadeUp = {
-  hidden: { opacity: 0, y: 18 },
-  visible: (i = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.48, delay: i * 0.07 },
-  }),
-};
+/* ─── Animated Number ────────────────────────────────────── */
+function AnimatedNumber({ value }: { value: number }) {
+  const motionVal = useMotionValue(0);
+  const springVal = useSpring(motionVal, { stiffness: 100, damping: 30 });
+  const [display, setDisplay] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    motionVal.set(value);
+  }, [value, motionVal]);
+
+  useEffect(() => {
+    const unsubscribe = springVal.on("change", (v) => {
+      setDisplay(Math.round(v));
+    });
+    return unsubscribe;
+  }, [springVal]);
+
+  return (
+    <span ref={ref} style={{ fontFamily: "var(--font-mono-face)" }}>
+      {display}
+    </span>
+  );
+}
+
+/* ─── Live Clock Widget ──────────────────────────────────── */
+function LiveClock({ isCheckedIn }: { isCheckedIn: boolean }) {
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const hours = time.getHours().toString().padStart(2, "0");
+  const minutes = time.getMinutes().toString().padStart(2, "0");
+  const seconds = time.getSeconds().toString().padStart(2, "0");
+
+  return (
+    <div className="flex items-center gap-4">
+      <div className="relative">
+        {/* Pulsing ring when clocked in */}
+        {isCheckedIn && (
+          <div
+            className="absolute inset-0 rounded-full pulse-ring"
+            style={{
+              border: "2px solid var(--brand)",
+              margin: -4,
+              borderRadius: "50%",
+              width: "calc(100% + 8px)",
+              height: "calc(100% + 8px)",
+            }}
+          />
+        )}
+        <div
+          className="w-3 h-3 rounded-full"
+          style={{
+            background: isCheckedIn ? "var(--success)" : "var(--text-3)",
+          }}
+        />
+      </div>
+      <div style={{ fontFamily: "var(--font-mono-face)" }}>
+        <span className="text-2xl font-bold" style={{ color: "var(--text-1)", letterSpacing: "1px" }}>
+          {hours}:{minutes}
+        </span>
+        <span className="text-sm ml-1" style={{ color: "var(--text-3)" }}>
+          {seconds}
+        </span>
+      </div>
+      <span
+        className="text-xs font-medium px-2 py-0.5 rounded-full"
+        style={{
+          background: isCheckedIn ? "var(--success-bg)" : "var(--bg-subtle)",
+          color: isCheckedIn ? "var(--success)" : "var(--text-3)",
+          border: `1px solid ${isCheckedIn ? "var(--success)" : "var(--border-1)"}`,
+        }}
+      >
+        {isCheckedIn ? "Clocked In" : "Not Clocked In"}
+      </span>
+    </div>
+  );
+}
+
+/* ─── Skeleton Loader ────────────────────────────────────── */
+function DashboardSkeleton() {
+  return (
+    <DashboardLayout title="Dashboard">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+        {/* Welcome banner skeleton */}
+        <div className="skeleton-pulse h-28 rounded-[var(--r-lg)]" />
+        {/* Stat cards skeleton */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="skeleton-pulse h-32 rounded-[var(--r-lg)]" />
+          ))}
+        </div>
+        {/* Content skeleton */}
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-7">
+          <div className="lg:col-span-4 skeleton-pulse h-80 rounded-[var(--r-lg)]" />
+          <div className="lg:col-span-3 skeleton-pulse h-80 rounded-[var(--r-lg)]" />
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}
 
 /* ─── Stat Card ──────────────────────────────────────────── */
 function StatCard({
@@ -71,15 +173,13 @@ function StatCard({
   trend,
   icon: Icon,
   accent,
-  index,
 }: {
   title: string;
-  value: string;
+  value: number;
   sub: string;
   trend: "up" | "down" | "neutral";
   icon: React.ElementType;
   accent: string;
-  index: number;
 }) {
   const TrendIcon =
     trend === "up"
@@ -89,34 +189,35 @@ function StatCard({
         : null;
   const trendColor =
     trend === "up"
-      ? "#16A34A"
+      ? "var(--success)"
       : trend === "down"
-        ? "#E11D48"
-        : "var(--muted-foreground)";
+        ? "var(--danger)"
+        : "var(--text-3)";
 
   return (
     <motion.div
-      custom={index}
       variants={fadeUp}
-      initial="hidden"
-      animate="visible"
-      className="relative rounded-2xl p-5 overflow-hidden"
+      className="relative rounded-[var(--r-lg)] p-5 overflow-hidden transition-all duration-200"
       style={{
-        background: "var(--card)",
-        border: "1px solid var(--border)",
-        fontFamily: "var(--font-dm-sans)",
+        background: "var(--bg-raised)",
+        border: "1px solid var(--border-1)",
+        boxShadow: "var(--shadow-sm)",
+      }}
+      whileHover={{
+        y: -3,
+        boxShadow: "var(--shadow-md)",
       }}
     >
       {/* Subtle accent blob */}
       <div
         className="absolute -top-6 -right-6 w-24 h-24 rounded-full pointer-events-none"
-        style={{ background: accent, filter: "blur(28px)", opacity: 0.18 }}
+        style={{ background: accent, filter: "blur(28px)", opacity: 0.12 }}
       />
 
       <div className="flex items-start justify-between mb-4">
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: accent + "20", border: `1px solid ${accent}30` }}
+          className="w-10 h-10 rounded-[var(--r-md)] flex items-center justify-center shrink-0"
+          style={{ background: accent + "18", border: `1px solid ${accent}28` }}
         >
           <Icon size={18} style={{ color: accent }} />
         </div>
@@ -133,22 +234,21 @@ function StatCard({
       <p
         className="text-3xl font-bold mb-1"
         style={{
-          fontFamily: "var(--font-playfair)",
-          color: "var(--foreground)",
+          fontFamily: "var(--font-display)",
+          color: "var(--text-1)",
         }}
       >
-        {value}
+        <AnimatedNumber value={value} />
       </p>
       <p
-        className="text-xs font-medium"
-        style={{ color: "var(--muted-foreground)" }}
+        className="text-xs font-medium label-caps"
       >
         {title}
       </p>
       {trend === "neutral" && (
         <p
           className="text-xs mt-0.5"
-          style={{ color: "var(--muted-foreground)", opacity: 0.6 }}
+          style={{ color: "var(--text-3)", opacity: 0.6 }}
         >
           {sub}
         </p>
@@ -167,11 +267,11 @@ function Section({
 }) {
   return (
     <div
-      className={`rounded-2xl overflow-hidden ${className}`}
+      className={`rounded-[var(--r-lg)] overflow-hidden transition-all duration-200 ${className}`}
       style={{
-        background: "var(--card)",
-        border: "1px solid var(--border)",
-        fontFamily: "var(--font-dm-sans)",
+        background: "var(--bg-raised)",
+        border: "1px solid var(--border-1)",
+        boxShadow: "var(--shadow-sm)",
       }}
     >
       {children}
@@ -190,15 +290,14 @@ function SectionHeader({
 }) {
   return (
     <div
-      className="flex items-center justify-between px-6 py-4"
-      style={{ borderBottom: "1px solid var(--border)" }}
+      className="flex items-center justify-between px-4 sm:px-6 py-4"
+      style={{ borderBottom: "1px solid var(--border-1)" }}
     >
       <div>
         <h3
-          className="text-base font-semibold"
           style={{
-            fontFamily: "var(--font-playfair)",
-            color: "var(--foreground)",
+            fontFamily: "var(--font-display)",
+            color: "var(--text-1)",
           }}
         >
           {title}
@@ -206,7 +305,7 @@ function SectionHeader({
         {subtitle && (
           <p
             className="text-xs mt-0.5"
-            style={{ color: "var(--muted-foreground)" }}
+            style={{ color: "var(--text-3)" }}
           >
             {subtitle}
           </p>
@@ -232,21 +331,21 @@ function Empty({
   return (
     <div className="flex flex-col items-center justify-center py-14 px-6 text-center">
       <div
-        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+        className="w-14 h-14 rounded-[var(--r-lg)] flex items-center justify-center mb-4"
         style={{
-          background: "var(--secondary)",
-          border: "1px solid var(--border)",
+          background: "var(--bg-subtle)",
+          border: "1px solid var(--border-1)",
         }}
       >
-        <Icon size={24} style={{ color: "var(--muted-foreground)" }} />
+        <Icon size={24} style={{ color: "var(--text-3)" }} />
       </div>
       <p
         className="text-sm font-semibold mb-1"
-        style={{ color: "var(--foreground)" }}
+        style={{ color: "var(--text-1)" }}
       >
         {title}
       </p>
-      <p className="text-xs mb-4" style={{ color: "var(--muted-foreground)" }}>
+      <p className="text-xs mb-4" style={{ color: "var(--text-3)" }}>
         {desc}
       </p>
       {action}
@@ -267,41 +366,41 @@ function QuickAction({
   accent: string;
 }) {
   return (
-    <button
+    <motion.button
+      whileTap={buttonTap}
+      whileHover={{ y: -2 }}
       onClick={onClick}
-      className="flex flex-col items-center gap-2.5 py-5 px-3 rounded-2xl transition-all duration-150 group w-full"
+      className="flex flex-col items-center gap-2.5 py-5 px-3 rounded-[var(--r-lg)] transition-all duration-150 w-full"
       style={{
-        background: "var(--secondary)",
-        border: "1px solid var(--border)",
+        background: "var(--bg-subtle)",
+        border: "1px solid var(--border-1)",
         cursor: "pointer",
-        fontFamily: "var(--font-dm-sans)",
+        fontFamily: "var(--font-body)",
       }}
       onMouseEnter={(e) => {
         const el = e.currentTarget as HTMLButtonElement;
         el.style.background = accent + "12";
         el.style.borderColor = accent + "40";
-        el.style.transform = "translateY(-2px)";
       }}
       onMouseLeave={(e) => {
         const el = e.currentTarget as HTMLButtonElement;
-        el.style.background = "var(--secondary)";
-        el.style.borderColor = "var(--border)";
-        el.style.transform = "translateY(0)";
+        el.style.background = "var(--bg-subtle)";
+        el.style.borderColor = "var(--border-1)";
       }}
     >
       <div
-        className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors"
+        className="w-10 h-10 rounded-[var(--r-md)] flex items-center justify-center transition-colors"
         style={{ background: accent + "18", border: `1px solid ${accent}28` }}
       >
         <Icon size={18} style={{ color: accent }} />
       </div>
       <span
         className="text-xs font-medium text-center"
-        style={{ color: "var(--foreground)" }}
+        style={{ color: "var(--text-1)" }}
       >
         {label}
       </span>
-    </button>
+    </motion.button>
   );
 }
 
@@ -310,11 +409,11 @@ export default function Home() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [attendanceRecords, setAttendanceRecords] = useState<
-    AttendanceRecord[]
-  >([]);
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const { ref: deptRef, inView: deptInView } = useInView({ triggerOnce: true, threshold: 0.1 });
 
   useEffect(() => {
     if (!isPending && !session?.user) router.push("/sign-in");
@@ -365,6 +464,7 @@ export default function Home() {
     employees.length > 0
       ? Math.round((todayAtt.length / employees.length) * 100)
       : 0;
+  const isCheckedIn = todayAtt.some((r) => !r.checkOutTime);
 
   const deptStats = departments.map((dept) => {
     const dEmp = employees.filter((e) => e.department === dept.name);
@@ -383,22 +483,7 @@ export default function Home() {
 
   /* Loading */
   if (isPending || isLoading) {
-    return (
-      <DashboardLayout title="Dashboard">
-        <div
-          className="flex items-center justify-center h-[80vh] gap-3"
-          style={{ color: "var(--muted-foreground)" }}
-        >
-          <motion.span
-            animate={{ rotate: 360 }}
-            transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-          >
-            <RiLoader4Line size={22} />
-          </motion.span>
-          <span className="text-sm">Loading dashboard…</span>
-        </div>
-      </DashboardLayout>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (!session?.user) return null;
@@ -411,58 +496,41 @@ export default function Home() {
   return (
     <DashboardLayout
       title="Dashboard"
-      subtitle={`${greeting}, ${firstName} 👋`}
+      subtitle={`${greeting}, ${firstName}`}
     >
-      <div
-        className="p-6 space-y-6"
-        style={{ fontFamily: "var(--font-dm-sans)" }}
+      <motion.div
+        variants={pageVariants}
+        initial="hidden"
+        animate="visible"
+        className="p-4 sm:p-6 lg:p-8 space-y-6"
+        style={{ fontFamily: "var(--font-body)" }}
       >
-        {/* ── Welcome banner ──────────────────────────────── */}
+        {/* ── Live Clock + Welcome banner ────────────────── */}
         <motion.div
-          custom={0}
           variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          className="relative rounded-2xl overflow-hidden flex items-center justify-between px-8 py-6"
+          className="relative rounded-[var(--r-lg)] overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 sm:px-8 py-6 gap-4"
           style={{
-            background:
-              "linear-gradient(135deg, var(--brand-navy) 0%, oklch(0.260 0.070 262) 100%)",
+            background: "linear-gradient(135deg, var(--brand) 0%, var(--brand-hover) 100%)",
             minHeight: 110,
           }}
         >
           {/* Grid overlay */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.06]">
+          <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.08]">
             <defs>
-              <pattern
-                id="dbgrid"
-                width="36"
-                height="36"
-                patternUnits="userSpaceOnUse"
-              >
-                <path
-                  d="M 36 0 L 0 0 0 36"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="0.5"
-                />
+              <pattern id="dbgrid" width="36" height="36" patternUnits="userSpaceOnUse">
+                <path d="M 36 0 L 0 0 0 36" fill="none" stroke="white" strokeWidth="0.5" />
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#dbgrid)" />
           </svg>
-          {/* Rose glow */}
-          <div
-            className="absolute right-24 top-0 bottom-0 w-48 pointer-events-none"
-            style={{
-              background: "var(--brand-rose)",
-              opacity: 0.12,
-              filter: "blur(40px)",
-            }}
-          />
 
           <div className="relative z-10">
+            <div className="mb-2">
+              <LiveClock isCheckedIn={isCheckedIn} />
+            </div>
             <p
               className="text-xs font-medium tracking-widest uppercase mb-1"
-              style={{ color: "oklch(1 0 0 / 0.45)" }}
+              style={{ color: "rgba(255,255,255,0.55)" }}
             >
               {new Date().toLocaleDateString("en-US", {
                 weekday: "long",
@@ -471,68 +539,64 @@ export default function Home() {
               })}
             </p>
             <h2
-              className="text-2xl font-bold text-white"
-              style={{ fontFamily: "var(--font-playfair)" }}
+              className="text-xl sm:text-2xl font-bold text-white"
+              style={{ fontFamily: "var(--font-display)" }}
             >
               {greeting},{" "}
-              <span
-                style={{
-                  color: "var(--brand-rose-muted)",
-                  fontStyle: "italic",
-                }}
-              >
+              <span style={{ color: "var(--brand-light)", fontStyle: "italic" }}>
                 {firstName}.
               </span>
             </h2>
-            <p
-              className="text-sm mt-1"
-              style={{ color: "oklch(1 0 0 / 0.50)" }}
-            >
+            <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.60)" }}>
               {todayAtt.length} of {employees.length} employees checked in today
-              {employees.length > 0 && ` — ${attendancePct}% attendance`}
+              {employees.length > 0 && ` \u2014 ${attendancePct}% attendance`}
             </p>
           </div>
 
-          <button
+          <motion.button
+            whileTap={buttonTap}
+            whileHover={{ opacity: 0.92 }}
             onClick={fetchData}
-            className="relative z-10 flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-xl transition-all hover:opacity-80"
+            className="relative z-10 flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-[var(--r-md)] transition-all"
             style={{
-              background: "oklch(1 0 0 / 0.10)",
-              border: "1px solid oklch(1 0 0 / 0.18)",
+              background: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.25)",
               color: "white",
               cursor: "pointer",
-              fontFamily: "var(--font-dm-sans)",
+              fontFamily: "var(--font-body)",
             }}
           >
             <RiRefreshLine size={14} />
             Refresh
-          </button>
+          </motion.button>
         </motion.div>
 
         {/* ── Stat cards ───────────────────────────────────── */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+        >
           <StatCard
-            index={1}
             title="Total Employees"
-            value={employees.length.toString()}
+            value={employees.length}
             sub="All time"
             trend="neutral"
             icon={RiGroupLine}
-            accent="#1E2040"
+            accent="#F97316"
           />
           <StatCard
-            index={2}
             title="Present Today"
-            value={todayAtt.length.toString()}
+            value={todayAtt.length}
             sub={`${attendancePct}% attendance`}
             trend="up"
             icon={RiUserFollowLine}
             accent="#16A34A"
           />
           <StatCard
-            index={3}
             title="Absent Today"
-            value={absent.toString()}
+            value={absent}
             sub={
               employees.length > 0
                 ? `${100 - attendancePct}% of team`
@@ -540,46 +604,41 @@ export default function Home() {
             }
             trend={absent > 0 ? "down" : "neutral"}
             icon={RiUserUnfollowLine}
-            accent="#E11D48"
+            accent="#DC2626"
           />
           <StatCard
-            index={4}
             title="Departments"
-            value={departments.length.toString()}
+            value={departments.length}
             sub="Active units"
             trend="neutral"
             icon={RiBuildingLine}
             accent="#7C3AED"
           />
-        </div>
+        </motion.div>
 
         {/* ── Activity + Employees row ─────────────────────── */}
-        <div className="grid gap-6 lg:grid-cols-7">
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-7">
           {/* Recent Activity */}
-          <motion.div
-            custom={5}
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            className="lg:col-span-4"
-          >
+          <motion.div variants={fadeUp} className="lg:col-span-4">
             <Section>
               <SectionHeader
                 title="Recent Activity"
                 subtitle="Today's check-in & check-out"
                 action={
-                  <button
-                    onClick={() => router.push("/attendance")}
-                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors hover:bg-secondary"
+                  <motion.button
+                    whileTap={buttonTap}
+                    whileHover={{ opacity: 0.92 }}
+                    onClick={() => router.push("/dashboard/attendance")}
+                    className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-[var(--r-sm)] transition-colors"
                     style={{
-                      color: "var(--brand-rose)",
-                      border: "1px solid var(--border)",
+                      color: "var(--brand)",
+                      border: "1px solid var(--border-1)",
                       cursor: "pointer",
                       background: "transparent",
                     }}
                   >
                     View All <RiArrowRightLine size={12} />
-                  </button>
+                  </motion.button>
                 }
               />
               <div className="p-4">
@@ -589,29 +648,33 @@ export default function Home() {
                     title="No Activity Yet"
                     desc="No check-ins recorded today"
                     action={
-                      <button
-                        onClick={() => router.push("/attendance")}
-                        className="btn-navy inline-flex items-center gap-2 w-auto px-4"
+                      <motion.button
+                        whileTap={buttonTap}
+                        onClick={() => router.push("/dashboard/attendance")}
+                        className="inline-flex items-center gap-2"
                         style={{
-                          width: "auto",
-                          display: "inline-flex",
                           padding: "10px 18px",
-                          borderRadius: "10px",
-                          background: "var(--brand-navy)",
-                          color: "white",
+                          borderRadius: "var(--r-md)",
+                          background: "var(--brand)",
+                          color: "var(--text-on-brand)",
                           fontSize: "0.8rem",
-                          fontWeight: 500,
+                          fontWeight: 600,
                           border: "none",
                           cursor: "pointer",
                         }}
                       >
                         Mark Attendance
-                      </button>
+                      </motion.button>
                     }
                   />
                 ) : (
-                  <div className="space-y-1">
-                    {todayAtt.slice(0, 6).map((record, i) => {
+                  <motion.div
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="visible"
+                    className="space-y-1"
+                  >
+                    {todayAtt.slice(0, 6).map((record) => {
                       const isCheckedOut = !!record.checkOutTime;
                       const name = record.employeeName || "Unknown";
                       const initials = name
@@ -629,29 +692,28 @@ export default function Home() {
                       return (
                         <motion.div
                           key={record.id}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.05 }}
-                          className="flex items-center gap-3 p-3 rounded-xl transition-colors"
-                          style={{ fontFamily: "var(--font-dm-sans)" }}
+                          variants={listItem}
+                          className="flex items-center gap-3 p-3 rounded-[var(--r-md)] transition-colors"
                           onMouseEnter={(e) => {
-                            (
-                              e.currentTarget as HTMLDivElement
-                            ).style.background = "var(--secondary)";
+                            (e.currentTarget as HTMLDivElement).style.background =
+                              "var(--brand-ghost)";
                           }}
                           onMouseLeave={(e) => {
-                            (
-                              e.currentTarget as HTMLDivElement
-                            ).style.background = "transparent";
+                            (e.currentTarget as HTMLDivElement).style.background =
+                              "transparent";
                           }}
                         >
                           {/* Avatar */}
                           <div
-                            className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
+                            className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
                             style={{
                               background: isCheckedOut
-                                ? "var(--brand-navy)"
-                                : "var(--brand-rose)",
+                                ? "var(--bg-subtle)"
+                                : "var(--brand)",
+                              color: isCheckedOut
+                                ? "var(--text-2)"
+                                : "var(--text-on-brand)",
+                              border: isCheckedOut ? "1px solid var(--border-1)" : "none",
                             }}
                           >
                             {initials}
@@ -660,45 +722,41 @@ export default function Home() {
                           <div className="flex-1 min-w-0">
                             <p
                               className="text-sm font-medium truncate"
-                              style={{ color: "var(--foreground)" }}
+                              style={{ color: "var(--text-1)" }}
                             >
                               {name}
                             </p>
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <RiMapPinLine
                                 size={11}
-                                style={{
-                                  color: "var(--muted-foreground)",
-                                  flexShrink: 0,
-                                }}
+                                style={{ color: "var(--text-3)", flexShrink: 0 }}
                               />
-                              <p
-                                className="text-xs truncate"
-                                style={{ color: "var(--muted-foreground)" }}
-                              >
+                              <p className="text-xs truncate" style={{ color: "var(--text-3)" }}>
                                 {record.zoneName || "Office"}
                               </p>
                             </div>
                           </div>
 
-                          <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                          <div className="flex flex-col items-end gap-1.5 shrink-0">
                             <span
-                              className="text-xs font-medium px-2 py-0.5 rounded-full"
+                              className="text-xs font-semibold px-2 py-0.5 rounded-full uppercase"
                               style={{
                                 background: isCheckedOut
-                                  ? "var(--secondary)"
-                                  : "oklch(0.578 0.232 13 / 0.10)",
+                                  ? "var(--bg-subtle)"
+                                  : "var(--brand-xlight)",
                                 color: isCheckedOut
-                                  ? "var(--muted-foreground)"
-                                  : "var(--brand-rose)",
-                                border: `1px solid ${isCheckedOut ? "var(--border)" : "oklch(0.578 0.232 13 / 0.20)"}`,
+                                  ? "var(--text-3)"
+                                  : "var(--brand)",
+                                border: `1px solid ${isCheckedOut ? "var(--border-1)" : "var(--brand-light)"}`,
+                                fontSize: "10px",
+                                letterSpacing: "0.5px",
                               }}
                             >
                               {isCheckedOut ? "Out" : "In"}
                             </span>
                             <span
                               className="text-xs"
-                              style={{ color: "var(--muted-foreground)" }}
+                              style={{ color: "var(--text-3)", fontFamily: "var(--font-mono-face)" }}
                             >
                               {time}
                             </span>
@@ -706,37 +764,33 @@ export default function Home() {
                         </motion.div>
                       );
                     })}
-                  </div>
+                  </motion.div>
                 )}
               </div>
             </Section>
           </motion.div>
 
           {/* Employees list */}
-          <motion.div
-            custom={6}
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            className="lg:col-span-3"
-          >
+          <motion.div variants={fadeUp} className="lg:col-span-3">
             <Section>
               <SectionHeader
                 title="Employees"
                 subtitle="Recently added"
                 action={
-                  <button
-                    onClick={() => router.push("/employees/new")}
-                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+                  <motion.button
+                    whileTap={buttonTap}
+                    whileHover={{ opacity: 0.92 }}
+                    onClick={() => router.push("/dashboard/employees/new")}
+                    className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-[var(--r-sm)] transition-colors"
                     style={{
-                      background: "var(--brand-rose)",
-                      color: "white",
+                      background: "var(--brand)",
+                      color: "var(--text-on-brand)",
                       border: "none",
                       cursor: "pointer",
                     }}
                   >
                     <RiAddLine size={13} /> Add
-                  </button>
+                  </motion.button>
                 }
               />
               <div className="p-4">
@@ -746,84 +800,77 @@ export default function Home() {
                     title="No Employees Yet"
                     desc="Add your first employee to get started"
                     action={
-                      <button
-                        onClick={() => router.push("/employees/new")}
+                      <motion.button
+                        whileTap={buttonTap}
+                        onClick={() => router.push("/dashboard/employees/new")}
                         style={{
                           display: "inline-flex",
                           alignItems: "center",
                           gap: 6,
                           padding: "10px 18px",
-                          borderRadius: "10px",
-                          background: "var(--brand-navy)",
-                          color: "white",
+                          borderRadius: "var(--r-md)",
+                          background: "var(--brand)",
+                          color: "var(--text-on-brand)",
                           fontSize: "0.8rem",
-                          fontWeight: 500,
+                          fontWeight: 600,
                           border: "none",
                           cursor: "pointer",
                         }}
                       >
                         <RiAddLine size={14} /> Add Employee
-                      </button>
+                      </motion.button>
                     }
                   />
                 ) : (
-                  <div className="space-y-1">
+                  <motion.div
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="visible"
+                    className="space-y-1"
+                  >
                     {employees.slice(0, 6).map((emp, i) => {
                       const inits =
                         `${emp.firstName[0]}${emp.lastName[0]}`.toUpperCase();
                       const colors = [
-                        "#E11D48",
-                        "#1E2040",
-                        "#7C3AED",
-                        "#0891B2",
-                        "#D97706",
-                        "#16A34A",
+                        "#F97316", "#16A34A", "#7C3AED",
+                        "#2563EB", "#D97706", "#DC2626",
                       ];
                       return (
                         <motion.div
                           key={emp.id}
-                          initial={{ opacity: 0, x: 10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.05 }}
-                          className="flex items-center gap-3 p-3 rounded-xl transition-colors cursor-pointer"
-                          onClick={() => router.push(`/employees/${emp.id}`)}
+                          variants={listItem}
+                          className="flex items-center gap-3 p-3 rounded-[var(--r-md)] transition-colors cursor-pointer"
+                          onClick={() => router.push(`/dashboard/employees/${emp.id}`)}
                           onMouseEnter={(e) => {
-                            (
-                              e.currentTarget as HTMLDivElement
-                            ).style.background = "var(--secondary)";
+                            (e.currentTarget as HTMLDivElement).style.background =
+                              "var(--brand-ghost)";
                           }}
                           onMouseLeave={(e) => {
-                            (
-                              e.currentTarget as HTMLDivElement
-                            ).style.background = "transparent";
+                            (e.currentTarget as HTMLDivElement).style.background =
+                              "transparent";
                           }}
                         >
                           <div
-                            className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
+                            className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0"
                             style={{ background: colors[i % colors.length] }}
                           >
                             {inits}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p
-                              className="text-sm font-medium truncate"
-                              style={{ color: "var(--foreground)" }}
-                            >
+                            <p className="text-sm font-medium truncate" style={{ color: "var(--text-1)" }}>
                               {emp.firstName} {emp.lastName}
                             </p>
-                            <p
-                              className="text-xs truncate"
-                              style={{ color: "var(--muted-foreground)" }}
-                            >
+                            <p className="text-xs truncate" style={{ color: "var(--text-3)" }}>
                               {emp.designation}
                             </p>
                           </div>
                           <span
-                            className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
+                            className="text-xs px-2 py-0.5 rounded-full shrink-0 label-caps"
                             style={{
-                              background: "var(--secondary)",
-                              color: "var(--muted-foreground)",
-                              border: "1px solid var(--border)",
+                              background: "var(--bg-subtle)",
+                              color: "var(--text-3)",
+                              border: "1px solid var(--border-1)",
+                              fontSize: "10px",
                             }}
                           >
                             {emp.department}
@@ -832,119 +879,117 @@ export default function Home() {
                       );
                     })}
                     {employees.length > 6 && (
-                      <button
-                        onClick={() => router.push("/employees")}
-                        className="w-full py-2.5 text-xs font-medium rounded-xl transition-colors mt-1"
+                      <motion.button
+                        whileTap={buttonTap}
+                        onClick={() => router.push("/dashboard/employees")}
+                        className="w-full py-2.5 text-xs font-semibold rounded-[var(--r-md)] transition-colors mt-1"
                         style={{
                           background: "transparent",
-                          color: "var(--brand-rose)",
-                          border: "1px dashed var(--border)",
+                          color: "var(--brand)",
+                          border: "1px dashed var(--border-1)",
                           cursor: "pointer",
                         }}
                         onMouseEnter={(e) => {
-                          (
-                            e.currentTarget as HTMLButtonElement
-                          ).style.background = "var(--secondary)";
+                          (e.currentTarget as HTMLButtonElement).style.background =
+                            "var(--brand-ghost)";
                         }}
                         onMouseLeave={(e) => {
-                          (
-                            e.currentTarget as HTMLButtonElement
-                          ).style.background = "transparent";
+                          (e.currentTarget as HTMLButtonElement).style.background =
+                            "transparent";
                         }}
                       >
-                        View all {employees.length} employees →
-                      </button>
+                        View all {employees.length} employees &rarr;
+                      </motion.button>
                     )}
-                  </div>
+                  </motion.div>
                 )}
               </div>
             </Section>
           </motion.div>
         </div>
 
-        {/* ── Department overview ───────────────────────────── */}
+        {/* ── Department overview (in-view triggered) ──────── */}
         <motion.div
-          custom={7}
+          ref={deptRef}
           variants={fadeUp}
           initial="hidden"
-          animate="visible"
+          animate={deptInView ? "visible" : "hidden"}
         >
           <Section>
             <SectionHeader
               title="Department Overview"
               subtitle="Headcount & today's attendance rate"
               action={
-                <button
-                  onClick={() => router.push("/organization")}
-                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors hover:bg-secondary"
+                <motion.button
+                  whileTap={buttonTap}
+                  whileHover={{ opacity: 0.92 }}
+                  onClick={() => router.push("/dashboard/organization")}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-[var(--r-sm)] transition-colors"
                   style={{
-                    color: "var(--muted-foreground)",
-                    border: "1px solid var(--border)",
+                    color: "var(--text-2)",
+                    border: "1px solid var(--border-1)",
                     cursor: "pointer",
                     background: "transparent",
                   }}
                 >
                   <RiAddLine size={12} /> Add Department
-                </button>
+                </motion.button>
               }
             />
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {deptStats.length === 0 ? (
                 <Empty
                   icon={RiBuildingLine}
                   title="No Departments"
                   desc="Create departments to organise your workforce"
                   action={
-                    <button
-                      onClick={() => router.push("/organization")}
+                    <motion.button
+                      whileTap={buttonTap}
+                      onClick={() => router.push("/dashboard/organization")}
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
                         gap: 6,
                         padding: "10px 18px",
-                        borderRadius: "10px",
-                        background: "var(--brand-navy)",
-                        color: "white",
+                        borderRadius: "var(--r-md)",
+                        background: "var(--brand)",
+                        color: "var(--text-on-brand)",
                         fontSize: "0.8rem",
-                        fontWeight: 500,
+                        fontWeight: 600,
                         border: "none",
                         cursor: "pointer",
                       }}
                     >
                       <RiAddLine size={14} /> Create Department
-                    </button>
+                    </motion.button>
                   }
                 />
               ) : (
-                <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {deptStats.map((dept, i) => {
                     const colors = [
-                      "#E11D48",
-                      "#1E2040",
-                      "#7C3AED",
-                      "#0891B2",
-                      "#D97706",
-                      "#16A34A",
+                      "#F97316", "#16A34A", "#7C3AED",
+                      "#2563EB", "#D97706", "#DC2626",
                     ];
                     const color = colors[i % colors.length];
                     return (
                       <div
                         key={dept.name}
-                        className="p-4 rounded-2xl"
+                        className="p-4 rounded-[var(--r-lg)]"
                         style={{
-                          background: "var(--secondary)",
-                          border: "1px solid var(--border)",
+                          background: "var(--bg-subtle)",
+                          border: "1px solid var(--border-1)",
                         }}
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <div
-                              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
                               style={{ background: color }}
                             />
                             <span
                               className="text-sm font-medium"
-                              style={{ color: "var(--foreground)" }}
+                              style={{ color: "var(--text-1)" }}
                             >
                               {dept.name}
                             </span>
@@ -952,23 +997,20 @@ export default function Home() {
                           <span
                             className="text-xs px-2 py-0.5 rounded-full"
                             style={{
-                              background: "var(--card)",
-                              color: "var(--muted-foreground)",
-                              border: "1px solid var(--border)",
+                              background: "var(--bg-raised)",
+                              color: "var(--text-3)",
+                              border: "1px solid var(--border-1)",
+                              fontFamily: "var(--font-mono-face)",
                             }}
                           >
-                            {dept.count}{" "}
-                            {dept.count === 1 ? "person" : "people"}
+                            {dept.count} {dept.count === 1 ? "person" : "people"}
                           </span>
                         </div>
 
                         {/* Progress bar */}
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between">
-                            <span
-                              className="text-xs"
-                              style={{ color: "var(--muted-foreground)" }}
-                            >
+                            <span className="text-xs" style={{ color: "var(--text-3)" }}>
                               Today's attendance
                             </span>
                             <span
@@ -976,10 +1018,11 @@ export default function Home() {
                               style={{
                                 color:
                                   dept.attendance >= 70
-                                    ? "#16A34A"
+                                    ? "var(--success)"
                                     : dept.attendance >= 40
-                                      ? "#D97706"
-                                      : "#E11D48",
+                                      ? "var(--warning)"
+                                      : "var(--danger)",
+                                fontFamily: "var(--font-mono-face)",
                               }}
                             >
                               {dept.attendance}%
@@ -987,11 +1030,11 @@ export default function Home() {
                           </div>
                           <div
                             className="h-1.5 rounded-full overflow-hidden"
-                            style={{ background: "var(--border)" }}
+                            style={{ background: "var(--border-1)" }}
                           >
                             <motion.div
                               initial={{ width: 0 }}
-                              animate={{ width: `${dept.attendance}%` }}
+                              animate={deptInView ? { width: `${dept.attendance}%` } : { width: 0 }}
                               transition={{
                                 duration: 0.8,
                                 delay: 0.3 + i * 0.08,
@@ -1012,46 +1055,41 @@ export default function Home() {
         </motion.div>
 
         {/* ── Quick actions ─────────────────────────────────── */}
-        <motion.div
-          custom={8}
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-        >
+        <motion.div variants={fadeUp}>
           <Section>
             <SectionHeader
               title="Quick Actions"
               subtitle="Shortcuts to common tasks"
             />
-            <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="p-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
               <QuickAction
                 icon={RiGroupLine}
                 label="Add Employee"
-                onClick={() => router.push("/employees/new")}
-                accent="#1E2040"
+                onClick={() => router.push("/dashboard/employees/new")}
+                accent="#F97316"
               />
               <QuickAction
                 icon={RiCalendarCheckLine}
                 label="Mark Attendance"
-                onClick={() => router.push("/attendance")}
-                accent="#E11D48"
+                onClick={() => router.push("/dashboard/attendance")}
+                accent="#16A34A"
               />
               <QuickAction
                 icon={RiMapPinLine}
                 label="Manage Geofences"
-                onClick={() => router.push("/geofencing")}
+                onClick={() => router.push("/dashboard/geofencing")}
                 accent="#7C3AED"
               />
               <QuickAction
                 icon={RiBarChartBoxLine}
                 label="View Reports"
-                onClick={() => router.push("/attendance/dashboard")}
-                accent="#0891B2"
+                onClick={() => router.push("/dashboard/attendance/dashboard")}
+                accent="#2563EB"
               />
             </div>
           </Section>
         </motion.div>
-      </div>
+      </motion.div>
     </DashboardLayout>
   );
 }
