@@ -51,11 +51,11 @@
   --bg-raised:      #FFFFFF;
   --bg-subtle:      #F5EFE3;
 
-  --brand:          #F97316;
-  --brand-hover:    #EA6C0A;
-  --brand-light:    #FED7AA;
-  --brand-xlight:   #FFF1E6;
-  --brand-ghost:    rgba(249,115,22,0.08);
+  --brand:          #D97706;
+  --brand-hover:    #B45309;
+  --brand-light:    #FDE68A;
+  --brand-xlight:   #FFFBEB;
+  --brand-ghost:    rgba(217,119,6,0.06);
 
   --text-1:         #1C1208;
   --text-2:         #6B5C45;
@@ -215,7 +215,7 @@
 
 .s-input-wrap:focus-within {
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(249,115,22,0.15);
+  box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
 }
 
 .s-input {
@@ -278,13 +278,13 @@
   border: none;
   cursor: pointer;
   letter-spacing: 0.01em;
-  box-shadow: 0 4px 20px -4px rgba(249,115,22,0.3);
+  box-shadow: 0 4px 20px -4px rgba(217,119,6,0.25);
   transition: background 0.16s, transform 0.12s, box-shadow 0.16s;
 }
 .btn-primary:hover {
   background: var(--brand-hover);
   transform: translateY(-1px);
-  box-shadow: 0 8px 28px -6px rgba(249,115,22,0.42);
+  box-shadow: 0 8px 28px -6px rgba(217,119,6,0.32);
 }
 .btn-primary:active {
   transform: translateY(0);
@@ -326,13 +326,13 @@
   border: none;
   cursor: pointer;
   letter-spacing: 0.01em;
-  box-shadow: 0 4px 20px -4px rgba(249,115,22,0.3);
+  box-shadow: 0 4px 20px -4px rgba(217,119,6,0.25);
   transition: background 0.16s, transform 0.12s, box-shadow 0.16s;
 }
 .btn-navy:hover {
   background: var(--brand-hover);
   transform: translateY(-1px);
-  box-shadow: 0 8px 28px -6px rgba(249,115,22,0.42);
+  box-shadow: 0 8px 28px -6px rgba(217,119,6,0.32);
 }
 .btn-navy:active {
   transform: translateY(0);
