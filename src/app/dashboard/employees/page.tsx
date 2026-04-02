@@ -21,7 +21,7 @@ import {
   RiFilterLine,
 } from "react-icons/ri";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/custom-toast";
 import {
   pageVariants,
   fadeUp,

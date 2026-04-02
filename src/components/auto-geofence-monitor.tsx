@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "@/lib/auth-client";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/custom-toast";
 
 interface Geofence {
   id: number;
@@ -169,7 +169,7 @@ export function AutoGeofenceMonitor() {
 
       if (response.ok) {
         lastCheckInRef.current = Date.now();
-        toast.success(`Auto check-in successful! 🎉`, {
+        toast.success(`Auto check-in successful!`, {
           description: `Checked in at ${zone.name}`,
         });
       } else {
@@ -233,7 +233,7 @@ export function AutoGeofenceMonitor() {
 
         if (updateResponse.ok) {
           lastCheckInRef.current = null;
-          toast.success("Auto check-out successful! 👋", {
+          toast.success("Auto check-out successful!", {
             description: "You've been checked out automatically",
           });
         } else {

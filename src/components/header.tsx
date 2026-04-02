@@ -13,7 +13,7 @@ import {
 } from "react-icons/ri";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useSession, authClient } from "@/lib/auth-client";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/custom-toast";
 import { scaleIn, buttonTap } from "@/lib/animations";
 
 /* ─── Helpers ────────────────────────────────────────────── */

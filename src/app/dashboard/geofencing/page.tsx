@@ -52,7 +52,7 @@ import {
 } from "lucide-react"
 import { useSession } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/custom-toast"
 
 interface Geofence {
   id: number

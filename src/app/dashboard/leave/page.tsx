@@ -49,7 +49,7 @@ import {
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/custom-toast";
 import { format } from "date-fns";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";

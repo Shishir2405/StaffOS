@@ -14,7 +14,7 @@ import {
   RiLoader4Line,
   RiStarSFill,
 } from "react-icons/ri";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/custom-toast";
 import { authClient } from "@/lib/auth-client";
 import { buttonTap, fadeUp } from "@/lib/animations";
 
