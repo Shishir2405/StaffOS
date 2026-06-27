@@ -298,51 +298,8 @@ export default function SignInPage() {
                   Continue with Google
                 </motion.button>
               </motion.div>
-
-              {/* Demo logins */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.62 }}
-                className="rounded-xl p-3"
-                style={{ background: "var(--brand-xlight)", border: "1px solid var(--border-1)" }}
-              >
-                <p className="label-caps mb-2">Demo logins — tap to fill</p>
-                <div className="grid gap-1.5">
-                  {[
-                    { r: "Admin", e: "admin@staffos.com", p: "Admin@123" },
-                    { r: "HR Manager", e: "hr@staffos.com", p: "Hr@12345" },
-                    { r: "Employee", e: "employee@staffos.com", p: "Employee@123" },
-                  ].map((c) => (
-                    <button
-                      key={c.e}
-                      type="button"
-                      onClick={() => { setEmail(c.e); setPassword(c.p); }}
-                      className="flex items-center justify-between gap-2 text-left rounded-lg px-2.5 py-1.5 transition-opacity hover:opacity-80"
-                      style={{ background: "var(--bg-raised)", border: "1px solid var(--border-1)" }}
-                    >
-                      <span className="text-xs font-semibold shrink-0" style={{ color: "var(--brand)" }}>{c.r}</span>
-                      <span className="text-[11px] truncate" style={{ color: "var(--text-3)" }}>{c.e} · {c.p}</span>
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
             </div>
           </form>
-
-          {/* Sign up */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.64 }}
-            className="text-sm text-center mt-7"
-            style={{ color: "var(--text-3)" }}
-          >
-            Don't have an account?{" "}
-            <Link href="/sign-up" className="font-medium transition-opacity hover:opacity-70" style={{ color: "var(--brand)" }}>
-              Create one free
-            </Link>
-          </motion.p>
 
           {/* Security note */}
           <motion.div
