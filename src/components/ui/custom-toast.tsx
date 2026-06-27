@@ -147,9 +147,9 @@ const typeConfig: Record<
   },
   warning: {
     icon: RiAlertLine,
-    color: "#D97706",
-    glowColor: "rgba(217,119,6,0.15)",
-    bgTint: "rgba(217,119,6,0.04)",
+    color: "#4A154B",
+    glowColor: "rgba(74,21,75,0.15)",
+    bgTint: "rgba(74,21,75,0.04)",
   },
   info: {
     icon: RiInformationLine,
@@ -253,8 +253,8 @@ function SingleToast({
           border: "1px solid rgba(255,255,255,0.45)",
           borderRadius: "var(--r-lg)",
           boxShadow: `
-            0 8px 32px rgba(120,80,20,0.08),
-            0 2px 8px rgba(120,80,20,0.04),
+            0 8px 32px rgba(30,10,35,0.08),
+            0 2px 8px rgba(30,10,35,0.04),
             inset 0 1px 0 rgba(255,255,255,0.6),
             inset 0 -1px 0 rgba(0,0,0,0.02)
           `,

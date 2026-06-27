@@ -99,7 +99,7 @@ function CommandPalette({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100]"
-            style={{ background: "rgba(28, 18, 8, 0.5)", backdropFilter: "blur(4px)" }}
+            style={{ background: "rgba(30, 10, 35, 0.5)", backdropFilter: "blur(4px)" }}
             onClick={() => { onClose(); setQuery(""); }}
           />
           {/* Panel */}
@@ -230,7 +230,7 @@ function BottomNav() {
         height: 64,
         background: "var(--bg-raised)",
         borderTop: "1px solid var(--border-1)",
-        boxShadow: "0 -2px 10px rgba(120,80,20,0.06)",
+        boxShadow: "0 -2px 10px rgba(30,10,35,0.06)",
       }}
     >
       <div className="flex items-center justify-around h-full px-2">

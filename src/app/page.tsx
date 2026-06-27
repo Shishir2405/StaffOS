@@ -199,9 +199,9 @@ function HeroSection() {
       {/* Full-bleed hero image */}
       <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1497366216548-37526070297c?w=1800&q=85')` }} />
       {/* Warm dark overlay */}
-      <div className="absolute inset-0" style={{ background: "linear-gradient(155deg, rgba(28,18,8,0.88) 0%, rgba(61,43,20,0.78) 50%, rgba(28,18,8,0.90) 100%)" }} />
+      <div className="absolute inset-0" style={{ background: "linear-gradient(155deg, rgba(30,10,35,0.88) 0%, rgba(74,21,75,0.78) 50%, rgba(30,10,35,0.90) 100%)" }} />
       {/* Warm bottom vignette */}
-      <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: "40%", background: "linear-gradient(to top, rgba(217,119,6,0.08), transparent)" }} />
+      <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: "40%", background: "linear-gradient(to top, rgba(74,21,75,0.08), transparent)" }} />
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center flex-1 text-center px-6" style={{ paddingTop: "120px", paddingBottom: "80px" }}>
@@ -269,7 +269,7 @@ function HeroSection() {
           className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-14"
         >
           <Link href="/sign-up" className="inline-flex items-center gap-2 font-semibold transition-all hover:opacity-90 hover:-translate-y-0.5"
-            style={{ textDecoration: "none", padding: "14px 28px", borderRadius: "var(--r-md)", background: "var(--brand)", color: "white", fontSize: "0.9rem", fontFamily: "var(--font-body)", boxShadow: "0 8px 28px -6px rgba(217,119,6,0.45)", letterSpacing: "0.01em" }}>
+            style={{ textDecoration: "none", padding: "14px 28px", borderRadius: "var(--r-md)", background: "var(--brand)", color: "white", fontSize: "0.9rem", fontFamily: "var(--font-body)", boxShadow: "0 8px 28px -6px rgba(74,21,75,0.45)", letterSpacing: "0.01em" }}>
             Start for free <RiArrowRightLine size={16} />
           </Link>
           <button className="inline-flex items-center gap-2 font-medium transition-all hover:opacity-80"
@@ -290,7 +290,7 @@ function HeroSection() {
               ))}
             </div>
             <div className="flex items-center gap-1">
-              {[1, 2, 3, 4, 5].map((i) => (<RiStarSFill key={i} size={13} color="#FDE68A" />))}
+              {[1, 2, 3, 4, 5].map((i) => (<RiStarSFill key={i} size={13} color="#E9D5EE" />))}
             </div>
             <span className="text-xs" style={{ color: "rgba(255,255,255,0.50)" }}>4.9 from 3,200+ reviews</span>
           </div>

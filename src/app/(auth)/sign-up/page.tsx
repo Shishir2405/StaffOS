@@ -246,7 +246,7 @@ export default function SignUpPage() {
         style={{ borderRadius: "var(--r-xl)", overflow: "hidden" }}
       >
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1200&q=80')` }} />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(155deg, rgba(28,18,8,0.78) 0%, rgba(61,43,20,0.88) 100%)" }} />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(155deg, rgba(30,10,35,0.78) 0%, rgba(74,21,75,0.88) 100%)" }} />
 
         {/* Brand */}
         <div className="absolute top-8 left-8 flex items-center gap-2.5">
@@ -280,7 +280,7 @@ export default function SignUpPage() {
                 className="flex items-center gap-3 rounded-[var(--r-lg)] px-4 py-3.5 text-left"
                 style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(12px)" }}
               >
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(217,119,6,0.2)", border: "1px solid rgba(217,119,6,0.3)" }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(74,21,75,0.2)", border: "1px solid rgba(74,21,75,0.3)" }}>
                   <f.icon size={15} color="var(--brand-light)" />
                 </div>
                 <div>

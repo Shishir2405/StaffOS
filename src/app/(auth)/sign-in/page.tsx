@@ -419,7 +419,7 @@ export default function SignInPage() {
           {/* Stars */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.75 }} className="flex items-center gap-1 mb-1.5">
             {[1, 2, 3, 4, 5].map((i) => (
-              <RiStarSFill key={i} size={14} color="#FDE68A" />
+              <RiStarSFill key={i} size={14} color="#E9D5EE" />
             ))}
           </motion.div>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.82 }} className="text-xs" style={{ color: "rgba(255,255,255,0.42)" }}>
