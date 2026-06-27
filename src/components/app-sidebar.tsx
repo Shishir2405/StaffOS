@@ -22,6 +22,38 @@ import {
   RiShieldLine,
   RiShieldFill,
   RiLogoutBoxLine,
+  RiFileTextLine,
+  RiFileTextFill,
+  RiTimeLine,
+  RiTimeFill,
+  RiSunLine,
+  RiSunFill,
+  RiTimerLine,
+  RiTimerFill,
+  RiPriceTag3Line,
+  RiPriceTag3Fill,
+  RiExchangeFundsLine,
+  RiExchangeFundsFill,
+  RiUserUnfollowLine,
+  RiUserUnfollowFill,
+  RiGovernmentLine,
+  RiGovernmentFill,
+  RiShieldCheckLine,
+  RiShieldCheckFill,
+  RiHandCoinLine,
+  RiHandCoinFill,
+  RiBarChartBoxLine,
+  RiBarChartBoxFill,
+  RiBankLine,
+  RiBankFill,
+  RiAccountCircleLine,
+  RiAccountCircleFill,
+  RiSettings3Line,
+  RiSettings3Fill,
+  RiFileSearchLine,
+  RiFileSearchFill,
+  RiLockLine,
+  RiLockFill,
 } from "react-icons/ri";
 import {
   Sidebar,
@@ -42,66 +74,219 @@ import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/custom-toast";
 import { buttonTap } from "@/lib/animations";
 
-/* ─── Nav config ─────────────────────────────────────────── */
-const navMain = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: RiDashboardLine,
-    iconActive: RiDashboardFill,
-    match: (p: string) => p === "/dashboard",
-  },
-  {
-    title: "Employees",
-    url: "/dashboard/employees",
-    icon: RiGroupLine,
-    iconActive: RiGroupFill,
-    match: (p: string) => p.startsWith("/dashboard/employees"),
-  },
-  {
-    title: "Attendance",
-    url: "/dashboard/attendance",
-    icon: RiCalendarCheckLine,
-    iconActive: RiCalendarCheckFill,
-    match: (p: string) => p.startsWith("/dashboard/attendance"),
-  },
-  {
-    title: "Geofencing",
-    url: "/dashboard/geofencing",
-    icon: RiMapPinLine,
-    iconActive: RiMapPinFill,
-    match: (p: string) => p.startsWith("/dashboard/geofencing"),
-  },
-  {
-    title: "Leave",
-    url: "/dashboard/leave",
-    icon: RiCalendarLine,
-    iconActive: RiCalendarFill,
-    match: (p: string) => p.startsWith("/dashboard/leave"),
-  },
-  {
-    title: "Payroll",
-    url: "/dashboard/payroll",
-    icon: RiMoneyDollarCircleLine,
-    iconActive: RiMoneyDollarCircleFill,
-    match: (p: string) => p.startsWith("/dashboard/payroll"),
-  },
-  {
-    title: "Organization",
-    url: "/dashboard/organization",
-    icon: RiBuildingLine,
-    iconActive: RiBuildingFill,
-    match: (p: string) => p.startsWith("/dashboard/organization"),
-  },
-];
+/* ─── Nav types ──────────────────────────────────────────── */
+type NavLink = {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>;
+  iconActive: React.ComponentType<{ size?: number; style?: React.CSSProperties }>;
+  match: (p: string) => boolean;
+  adminOnly?: boolean;
+};
 
-const adminNavItems = [
+type NavGroup = {
+  label: string;
+  items: NavLink[];
+};
+
+/* ─── Nav config (grouped) ───────────────────────────────── */
+const navGroups: NavGroup[] = [
   {
-    title: "User Management",
-    url: "/dashboard/admin/users",
-    icon: RiShieldLine,
-    iconActive: RiShieldFill,
-    match: (p: string) => p.startsWith("/dashboard/admin"),
+    label: "Overview",
+    items: [
+      {
+        title: "Dashboard",
+        url: "/dashboard",
+        icon: RiDashboardLine,
+        iconActive: RiDashboardFill,
+        match: (p) => p === "/dashboard",
+      },
+    ],
+  },
+  {
+    label: "People",
+    items: [
+      {
+        title: "Employees",
+        url: "/dashboard/employees",
+        icon: RiGroupLine,
+        iconActive: RiGroupFill,
+        match: (p) => p.startsWith("/dashboard/employees"),
+      },
+      {
+        title: "Documents",
+        url: "/dashboard/documents",
+        icon: RiFileTextLine,
+        iconActive: RiFileTextFill,
+        match: (p) => p.startsWith("/dashboard/documents"),
+      },
+      {
+        title: "Attendance",
+        url: "/dashboard/attendance",
+        icon: RiCalendarCheckLine,
+        iconActive: RiCalendarCheckFill,
+        match: (p) => p.startsWith("/dashboard/attendance"),
+      },
+      {
+        title: "Shifts",
+        url: "/dashboard/shifts",
+        icon: RiTimeLine,
+        iconActive: RiTimeFill,
+        match: (p) => p.startsWith("/dashboard/shifts"),
+      },
+      {
+        title: "Leave",
+        url: "/dashboard/leave",
+        icon: RiCalendarLine,
+        iconActive: RiCalendarFill,
+        match: (p) => p.startsWith("/dashboard/leave"),
+      },
+      {
+        title: "Holidays",
+        url: "/dashboard/holidays",
+        icon: RiSunLine,
+        iconActive: RiSunFill,
+        match: (p) => p.startsWith("/dashboard/holidays"),
+      },
+      {
+        title: "Overtime",
+        url: "/dashboard/overtime",
+        icon: RiTimerLine,
+        iconActive: RiTimerFill,
+        match: (p) => p.startsWith("/dashboard/overtime"),
+      },
+      {
+        title: "Geofencing",
+        url: "/dashboard/geofencing",
+        icon: RiMapPinLine,
+        iconActive: RiMapPinFill,
+        match: (p) => p.startsWith("/dashboard/geofencing"),
+      },
+    ],
+  },
+  {
+    label: "Payroll",
+    items: [
+      {
+        title: "Payroll Runs",
+        url: "/dashboard/payroll",
+        icon: RiMoneyDollarCircleLine,
+        iconActive: RiMoneyDollarCircleFill,
+        match: (p) => p === "/dashboard/payroll" || p.startsWith("/dashboard/payroll/runs"),
+      },
+      {
+        title: "Pay Heads",
+        url: "/dashboard/payroll/pay-heads",
+        icon: RiPriceTag3Line,
+        iconActive: RiPriceTag3Fill,
+        match: (p) => p.startsWith("/dashboard/payroll/pay-heads"),
+      },
+      {
+        title: "Adjustments",
+        url: "/dashboard/payroll/adjustments",
+        icon: RiExchangeFundsLine,
+        iconActive: RiExchangeFundsFill,
+        match: (p) => p.startsWith("/dashboard/payroll/adjustments"),
+      },
+      {
+        title: "Final Settlement",
+        url: "/dashboard/payroll/settlement",
+        icon: RiUserUnfollowLine,
+        iconActive: RiUserUnfollowFill,
+        match: (p) => p.startsWith("/dashboard/payroll/settlement"),
+      },
+      {
+        title: "Tax (TDS)",
+        url: "/dashboard/tax",
+        icon: RiGovernmentLine,
+        iconActive: RiGovernmentFill,
+        match: (p) => p.startsWith("/dashboard/tax"),
+      },
+      {
+        title: "Compliance",
+        url: "/dashboard/compliance",
+        icon: RiShieldCheckLine,
+        iconActive: RiShieldCheckFill,
+        match: (p) => p.startsWith("/dashboard/compliance"),
+      },
+      {
+        title: "Benefits",
+        url: "/dashboard/benefits",
+        icon: RiHandCoinLine,
+        iconActive: RiHandCoinFill,
+        match: (p) => p.startsWith("/dashboard/benefits"),
+      },
+      {
+        title: "Reports",
+        url: "/dashboard/reports",
+        icon: RiBarChartBoxLine,
+        iconActive: RiBarChartBoxFill,
+        match: (p) => p.startsWith("/dashboard/reports"),
+      },
+    ],
+  },
+  {
+    label: "Finance & Self-Service",
+    items: [
+      {
+        title: "Finance",
+        url: "/dashboard/finance",
+        icon: RiBankLine,
+        iconActive: RiBankFill,
+        match: (p) => p.startsWith("/dashboard/finance"),
+      },
+      {
+        title: "Self-Service",
+        url: "/dashboard/ess",
+        icon: RiAccountCircleLine,
+        iconActive: RiAccountCircleFill,
+        match: (p) => p.startsWith("/dashboard/ess"),
+      },
+    ],
+  },
+  {
+    label: "Administration",
+    items: [
+      {
+        title: "Organization",
+        url: "/dashboard/organization",
+        icon: RiBuildingLine,
+        iconActive: RiBuildingFill,
+        match: (p) => p.startsWith("/dashboard/organization"),
+      },
+      {
+        title: "Settings",
+        url: "/dashboard/settings",
+        icon: RiSettings3Line,
+        iconActive: RiSettings3Fill,
+        match: (p) => p.startsWith("/dashboard/settings"),
+        adminOnly: true,
+      },
+      {
+        title: "Audit & Compliance",
+        url: "/dashboard/audit",
+        icon: RiFileSearchLine,
+        iconActive: RiFileSearchFill,
+        match: (p) => p.startsWith("/dashboard/audit"),
+        adminOnly: true,
+      },
+      {
+        title: "Security & Backup",
+        url: "/dashboard/security",
+        icon: RiLockLine,
+        iconActive: RiLockFill,
+        match: (p) => p.startsWith("/dashboard/security"),
+        adminOnly: true,
+      },
+      {
+        title: "User Management",
+        url: "/dashboard/admin/users",
+        icon: RiShieldLine,
+        iconActive: RiShieldFill,
+        match: (p) => p.startsWith("/dashboard/admin"),
+        adminOnly: true,
+      },
+    ],
   },
 ];
 
@@ -115,15 +300,7 @@ const getInitials = (name: string) =>
     .slice(0, 2);
 
 /* ─── NavItem ────────────────────────────────────────────── */
-function NavItem({
-  item,
-  isActive,
-}: {
-  item: (typeof navMain)[number];
-  isActive: boolean;
-}) {
-  const { state } = useSidebar();
-  const collapsed = state === "collapsed";
+function NavItem({ item, isActive }: { item: NavLink; isActive: boolean }) {
   const Icon = isActive ? item.iconActive : item.icon;
 
   return (
@@ -169,13 +346,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession();
   const pathname = usePathname();
   const router = useRouter();
-  const { state } = useSidebar();
-  const collapsed = state === "collapsed";
 
   const sessionUser = session?.user as any;
   const isAdminOrHr =
     sessionUser?.role === "admin" || sessionUser?.role === "hr";
-  const allNavItems = isAdminOrHr ? [...navMain, ...adminNavItems] : navMain;
 
   const handleSignOut = async () => {
     const token = localStorage.getItem("bearer_token");
@@ -251,42 +425,55 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           fontFamily: "var(--font-body)",
         }}
       >
-        <SidebarGroup style={{ padding: "12px 10px 0" }}>
-          <SidebarGroupLabel
-            className="group-data-[collapsible=icon]:hidden label-caps"
-            style={{
-              marginBottom: 4,
-            }}
-          >
-            Main Menu
-          </SidebarGroupLabel>
+        {navGroups.map((group, gi) => {
+          const visibleItems = group.items.filter(
+            (item) => !item.adminOnly || isAdminOrHr,
+          );
+          if (visibleItems.length === 0) return null;
 
-          <SidebarGroupContent>
-            <SidebarMenu style={{ gap: 2 }}>
-              {allNavItems.map((item) => (
-                <NavItem
-                  key={item.url}
-                  item={item}
-                  isActive={item.match(pathname)}
-                />
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+          return (
+            <SidebarGroup
+              key={group.label}
+              style={{
+                padding: "12px 10px 0",
+                ...(gi > 0
+                  ? { marginTop: 6, borderTop: "1px solid var(--border-1)" }
+                  : {}),
+              }}
+            >
+              <SidebarGroupLabel
+                className="group-data-[collapsible=icon]:hidden label-caps"
+                style={{ marginBottom: 4 }}
+              >
+                {group.label}
+              </SidebarGroupLabel>
+
+              <SidebarGroupContent>
+                <SidebarMenu style={{ gap: 2 }}>
+                  {visibleItems.map((item) => (
+                    <NavItem
+                      key={item.url}
+                      item={item}
+                      isActive={item.match(pathname)}
+                    />
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
 
         {/* System section */}
         <SidebarGroup
           style={{
             padding: "12px 10px 0",
-            marginTop: 8,
+            marginTop: 6,
             borderTop: "1px solid var(--border-1)",
           }}
         >
           <SidebarGroupLabel
             className="group-data-[collapsible=icon]:hidden label-caps"
-            style={{
-              marginBottom: 4,
-            }}
+            style={{ marginBottom: 4 }}
           >
             System
           </SidebarGroupLabel>
