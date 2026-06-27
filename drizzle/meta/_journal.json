@@ -50,6 +50,13 @@
       "when": 1761126860064,
       "tag": "0006_wonderful_thunderbolt",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1782541542120,
+      "tag": "0007_spotty_wendell_vaughn",
+      "breakpoints": true
     }
   ]
 }
