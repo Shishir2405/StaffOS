@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter, DM_Mono } from "next/font/google";
+import { Inter, DM_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { AutoGeofenceMonitor } from "@/components/auto-geofence-monitor";
 
-const plusJakarta = Plus_Jakarta_Sans({
+const interDisplay = Inter({
   variable: "--font-display",
   subsets: ["latin"],
   weight: ["600", "700", "800"],
@@ -13,7 +13,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 const inter = Inter({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const dmMono = DM_Mono({
@@ -97,10 +97,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${plusJakarta.variable} ${inter.variable} ${dmMono.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${interDisplay.variable} ${inter.variable} ${dmMono.variable}`} suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-        <meta name="theme-color" content="#FDFAF5" />
+        <meta name="theme-color" content="#FBFAFD" />
       </head>
       <body className="antialiased">
         <Providers>

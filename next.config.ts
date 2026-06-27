@@ -7,6 +7,7 @@ const LOADER = path.resolve(
 );
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: __dirname,
   images: {
     remotePatterns: [
       {
