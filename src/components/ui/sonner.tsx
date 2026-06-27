@@ -28,7 +28,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
             "bg-secondary text-secondary-foreground rounded-lg text-xs",
           success: "border-l-4 !border-l-[#16A34A]",
           error: "border-l-4 !border-l-[var(--brand-rose)]",
-          warning: "border-l-4 !border-l-[#D97706]",
+          warning: "border-l-4 !border-l-[#4A154B]",
           info: "border-l-4 !border-l-[#0891B2]",
         },
       }}

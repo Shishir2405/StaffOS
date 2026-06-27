@@ -384,7 +384,7 @@ export default function PayrollPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{pendingRuns}</div>
+              <div className="text-2xl font-bold text-[#611F69]">{pendingRuns}</div>
               <p className="text-xs text-muted-foreground mt-1">awaiting processing</p>
             </CardContent>
           </Card>

@@ -563,15 +563,15 @@ export default function AttendancePage() {
 
         {/* No Geofences Alert */}
         {!isLoadingGeofences && assignedGeofences.length === 0 && (
-          <Card className="border-amber-500 bg-amber-50">
+          <Card className="border-[#611F69] bg-[#F9F0FF]">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-amber-900">
+              <CardTitle className="flex items-center gap-2 text-[#4A154B]">
                 <AlertCircle className="h-5 w-5" />
                 No Geofences Assigned
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-amber-800">
+              <p className="text-[#611F69]">
                 You don't have any geofence locations assigned yet. Please
                 contact your administrator to assign geofence locations for
                 automatic attendance tracking.

@@ -18,9 +18,9 @@ interface HeatmapDay {
 function getHeatmapColor(value: number): string {
   switch (value) {
     case 0: return "var(--bg-subtle)";
-    case 1: return "rgba(217,119,6,0.15)";
-    case 2: return "rgba(217,119,6,0.35)";
-    case 3: return "rgba(217,119,6,0.65)";
+    case 1: return "rgba(74,21,75,0.15)";
+    case 2: return "rgba(74,21,75,0.35)";
+    case 3: return "rgba(74,21,75,0.65)";
     default: return "var(--bg-subtle)";
   }
 }
@@ -202,7 +202,7 @@ export function TeamPulse({ onlineEmployees }: { onlineEmployees: OnlineEmployee
               <div
                 className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold"
                 style={{
-                  background: ["#D97706", "#16A34A", "#2563EB", "#7C3AED", "#DC2626"][i % 5],
+                  background: ["#4A154B", "#16A34A", "#2563EB", "#7C3AED", "#DC2626"][i % 5],
                   color: "white",
                 }}
               >
